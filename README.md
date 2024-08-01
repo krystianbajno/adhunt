@@ -1,5 +1,5 @@
 # ADHUNT
-ADHUNT is a polyglot file (Bash, PowerShell, Python, HTML) for domain information gathering.
+ADHUNT is a polyglot file (Bash, PowerShell, Python, HTML) for domain information gathering, that works everywhere and needs no installation.
 
 Just open the website, hit Save As and start your recon.
 
