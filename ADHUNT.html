@@ -1,0 +1,868 @@
+''''
+echo `# <# <!--` 
+# ADHUNT v0.0.1
+# server, domain, user, password
+# $1       $2      $3     $4
+# http://www.selfadsi.org/user-attributes-w2k12.htm
+
+function getusers {
+    if [ "$#" -eq 0 ]; then
+        exec 3<&0 4<&1 
+        exec 0</dev/tty
+        exec 1>/dev/tty
+        read -p "Enter Server host: " server < /dev/tty
+        read -p "Enter Server domain eg. dc=example,dc=com: " domain < /dev/tty
+        read -p "Enter username: " username < /dev/tty
+        read -sp "Enter password (no visible ninja): " password < /dev/tty
+        exec 0<&3 3<&-
+        exec 1<&4 4<&-
+    else
+        if [ "$#" -ne 4 ]; then
+            echo "adhunt.html <server> <domain> <user> <password>"
+            exit 1
+        fi
+
+        server=$1
+        domain=$2
+        username=$3
+        password=$4
+    fi
+
+    mkdir results
+
+    # server, domain, user, password
+    # dc=example,dc=com
+    ldapsearch -LLL -x -H "ldap://$server" \
+        -D "$username" -w "$password" \
+        -b "$domain" -o ldif-wrap=no \
+        "(&(objectClass=user)(objectCategory=person))" \
+        accountExpires adminDescription adminDisplayName \
+        ADsPath altRecipient altRecipientBL \
+        authOrig authOrigBL autoReplyMessage \
+        badPasswordTime badPwdCount canonicalName \
+        Class co comment \
+        company countryCode createTimeStamp \
+        deletedItemFlags delivContLength deliverAndRedirect \
+        department departmentNumber description \
+        directReports displayName displayNamePrintable \
+        distinguishedName division dLMemRejectPerms \
+        dLMemRejectPermsBL dLMemSubmitPerms dLMemSubmitPermsBL \
+        employeeID employeeNumber employeeType \
+        extensionData extensionAttribute1 extensionAttribute2 \
+        extensionAttribute3 extensionAttribute4 extensionAttribute5 \
+        extensionAttribute6 extensionAttribute7 extensionAttribute8 \
+        extensionAttribute9 extensionAttribute10 extensionAttribute11 \
+        extensionAttribute12 extensionAttribute13 extensionAttribute14 \
+        extensionAttribute15 facsimileTelephoneNumber garbageCollPeriod \
+        givenName homeDirectory homeDrive \
+        homeMDB homeMTA homePhone \
+        info initials ipPhone \
+        isDeleted isRecycled l \
+        lastKnownParent lastLogoff lastLogon \
+        lastLogonTimestamp legacyExchangeDN lockoutTime \
+        logonCount logonHours mail \
+        mailNickname manager mDBOverHardQuotaLimit \
+        mDBOverQuotaLimit mDBStorageQuota mDBUseDefaults \
+        memberOf mobile modifyTimeStamp \
+        msCOM-UserPartitionSetLink msDS-User-Account-Control-Computed \
+        msDS-UserPasswordExpiryTimeComputed msExchHideFromAddressLists \
+        msExchHomeServerName msExchMailboxSecurityDescriptor \
+        msExchMasterAccountSID msExchOmaAdminWirelessEnable \
+        msExchPoliciesExcluded msExchRecipLimit msExchRequireAuthToSendTo \
+        msExchUserAccountControl msNPAllowDialin msNPCallingStationID \
+        msNPSavedCallingStationID msRADIUSCallbackNumber \
+        msRADIUSFramedIPAddress msRADIUSFramedRoute \
+        msRADIUSServiceType msRASSavedCallbackNumber \
+        msRASSavedFramedIPAddress msRASSavedFramedRoute \
+        msSFU30GidNumber msSFU30HomeDirectory msSFU30LoginShell \
+        msSFU30Name msSFU30NisDomain msSFU30Password \
+        msSFU30UidNumber name nTSecurityDescriptor \
+        objectCategory objectClass objectGUID \
+        objectSid otherFacsimileTelephoneNumber otherHomePhone \
+        otherIpPhone otherMobile otherPager \
+        otherTelephone pager Parent \
+        physicalDeliveryOfficeName postalCode postOfficeBox \
+        primaryGroupID profilePath protocolSettings \
+        proxyAddresses publicDelegates publicDelegatesBL \
+        pwdLastSet sAMAccountName scriptPath \
+        seeAlso securityProtocol sIDHistory \
+        sn st streetAddress \
+        submissionContLength telephoneNumber textEncodedORAddress \
+        title unauthOrig unauthOrigBL \
+        url userAccountControl userCertificate \
+        userParameters userPrincipalName userWorkstations \
+        uSNChanged uSNCreated whenChanged \
+        whenCreated wWWHomePage \
+        title name sAMAccountName userPrincipalName \
+        adminCount servicePrincipalName telephoneNumber \
+        msTsPrimaryDesktop msTSProperty01 msDs-AuthenticatedAtDC \
+        userPassword createTimeStamp modifyTimeStamp \
+        homePhone department company \
+        badPwdCount lockoutTime objectSid \
+        lastLogon physicalDeliveryOfficeName \
+        profilePath scriptPath homeDirectory \
+        homeDrive -E pr=1000/noprompt > results/USERS.ldif
+
+    ldapsearch -LLL -x -H "ldap://$server" -D "$username" -w "$password" -b "$domain" -o ldif-wrap=no "(|(objectClass=organizationalUnit)(objectClass=Group))" \
+        adminDescription adminDisplayName ADsPath \
+        authOrig authOrigBL canonicalName \
+        Class cn createTimeStamp \
+        delivContLength description displayName \
+        displayNamePrintable distinguishedName dLMemRejectPerms \
+        dLMemRejectPermsBL dLMemSubmitPerms dLMemSubmitPermsBL \
+        extensionAttribute groupType homeMTA \
+        info isDeleted legacyExchangeDN \
+        mail mailNickName managedBy \
+        member memberOf modifyTimeStamp \
+        msExchExpansionServerName msExchHideFromAddressLists msExchHomeServerName \
+        msExchRequireAuthToSendTo msSFU30GidNumber msSFU30Name \
+        msSFU30NisDomain msSFU30PosixMember name \
+        Name nTSecurityDescriptor objectCategory \
+        objectClass objectGUID objectSid \
+        oOFReplyToOriginator Parent primaryGroupToken \
+        proxyAddresses reportToOriginator reportToOwner \
+        sAMAccountName telephoneNumber textEncodedORAddress \
+        unauthOrig unauthOrigBL uSNChanged \
+        uSNCreated whenChanged whenCreated -E pr=1000/noprompt \ > results/GROUPS.ldif
+
+    ldapsearch -LLL -x -H "ldap://$server" -D "$username" -w "$password" -b "$domain" -o ldif-wrap=no "(&(objectClass=computer))" -E pr=1000/noprompt > results/COMPUTERS.ldif
+
+    # Follow the gPCFileSysPath to get contents of policies. Login to SYSVOL volumes.
+    ldapsearch -LLL -x -H "ldap://$server" \
+        -D "$username" -w "$password" \
+        -b "CN=Policies,CN=System,$domain" \
+        -o ldif-wrap=no \
+        "(objectClass=groupPolicyContainer)" \
+        displayName cn name gPCFileSysPath gPCFunctionalityVersion \
+        gPCMachineExtensionNames gPCUserExtensionNames \
+        whenCreated whenChanged uSNCreated uSNChanged \
+        objectGUID objectSid \
+        > results/GPOS.ldif
+}
+
+# server, domain, user, password, outfile
+getusers $1 $2 $3 $4
+exit 1
+Yes, the bash script stopped working here.
+
+In order to run this script as powershell, just run it like so:
+iex(gc -path adhunt.html -raw)
+# -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADHUNT version 0.0.1</title>
+    <style>
+        :root {
+            --bg-color-light: #ffffff;
+            --text-color-light: #000000;
+            --bg-color-dark: #012456;
+            --text-color-dark: #ffffff;
+        }
+
+        body {
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 16px;
+            transition: 1s;
+        }
+
+        body.light-mode {
+            background-color: var(--bg-color-light);
+            color: var(--text-color-light);
+        }
+
+        body.dark-mode {
+            background-color: var(--bg-color-dark);
+            color: var(--text-color-dark);
+        }
+
+        body.light-mode input,
+        body.light-mode button {
+            background: var(--bg-color-light);
+            color: var(--text-color-light);
+            border: 1px solid rgb(224, 224, 224);
+        }
+
+        body.dark-mode input,
+        body.dark-mode button {
+            background: var(--bg-color-dark);
+            color: var(--text-color-dark);
+            border: 1px solid rgb(232, 229, 255);
+        }
+
+        #date, h2 {
+            font-size: 32px;
+        }
+
+        h2 {
+            margin-bottom: 8px;
+        }
+
+        .container, .user, p {
+            font-size: 14px;
+        }
+
+        .container {
+            width: 100%;
+        }
+
+        .output {
+            max-width: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        p {
+            margin: 2px 0;
+            word-wrap: break-word;
+        }
+
+        .user, .group, .computer {
+            width: 33%;
+            word-wrap: wrap;
+        }
+
+        summary, details {
+            cursor: pointer;
+        }
+
+        .userAccountControl {
+            font-weight: bold;
+            color: red;
+        }
+
+        .pwdLastSet {
+            font-weight: bold;
+            color: rgb(105, 105, 255);
+        }
+
+        .lastLogon, .userCertificate, .memberOf {
+            font-weight: bold;
+            color: rgb(36, 196, 36);
+        }
+
+        .userPrincipalName {
+            font-weight: bold;
+            color: rgb(182, 29, 196);
+        }
+
+        input, button {
+            padding: 10px 20px;
+            height: 45px;
+        }
+
+        button {
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .legend {
+            margin-top: 16px;
+        }
+
+        #controls-checks {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            gap: 4px;
+        }
+
+        .check {
+            cursor: pointer;
+            font-weight: 800;
+        }
+
+        #controls {
+            margin-bottom: 16px;
+        }
+
+        .visible {
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        a {
+            color: rgb(255, 125, 3);
+            font-weight: bold;
+        }
+
+        #credits {
+            margin-bottom: 8px;
+        }
+
+        .progress {
+            margin-top: 16px;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="container">
+        <div id="credits">
+            ADHUNT v0.0.1 
+            <a href="https://github.com/krystianbajno">https://github.com/krystianbajno/ADHUNT</a> 
+            © Krystian Bajno 2024 
+        </div>
+        <div id="date"></div>
+        <div id="controls">
+            <div id="controls-checks">
+                <input id="users-check" checked type="checkbox"/><label class="check" for="users-check">Users</label>
+                <input id="groups-check" type="checkbox"/><label class="check" for="groups-check">Groups</label>
+                <input id="computers-check" type="checkbox"/><label class="check" for="computers-check">Computers</label>    
+                <input id="gpos-check" type="checkbox"/><label class="check" for="gpos-check">Group Policies</label>    
+            </div>
+            <div id="controls-filters">
+                <button id="toggleButton">☀️</button>
+                <input type="text" id="filterInput" placeholder="Enter filter text here"/>
+            </div>
+        </div>
+        <div id="users-panel" class="visible">
+            <h1>Users</h1>
+            <button id="saveButtonUsers">Save .csv</button>
+            <input type="file" id="usersFileInput"/>
+            <div class="progress" id="usersProgress"></div>
+            <div class="output" id="output-users"></div>
+        </div>
+        <div id="groups-panel" class="hidden">
+            <h1>Groups</h1>
+            <button id="saveButtonGroups">Save .csv</button>
+            <input type="file" id="groupsFileInput"/>
+            <div class="progress" id="groupsProgress"></div>
+            <div class="output" id="output-groups"></div>
+        </div>
+        <div id="computers-panel" class="hidden">
+            <h1>Computers</h1>
+            <button id="saveButtonComputers">Save .csv</button>
+            <input type="file" id="computersFileInput"/>
+            <div class="progress" id="computersProgress"></div>
+            <div class="output" id="output-computers"></div>
+        </div>
+        <div id="gpos-panel" class="hidden">
+            <h1>Group Policies</h1>
+            <button id="saveButtonGpos">Save .csv</button>
+            <input type="file" id="gposFileInput"/>
+            <div class="progress" id="gposProgress"></div>
+            <div class="output" id="output-gpos"></div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let allUsers = [], allGroups = [], allComputers = [];
+            let displayedUsers = [], displayedGroups = [], displayedComputers = [];
+
+            document.getElementById('date').textContent = new Date().toLocaleString();
+
+            const elements = {
+                usersCheck: document.getElementById('users-check'),
+                groupsCheck: document.getElementById('groups-check'),
+                computersCheck: document.getElementById('computers-check'),
+                gposCheck: document.getElementById("gpos-check"),
+                usersPanel: document.getElementById('users-panel'),
+                groupsPanel: document.getElementById('groups-panel'),
+                computersPanel: document.getElementById('computers-panel'),
+                gposPanel: document.getElementById('gpos-panel'),
+                usersProgress: document.getElementById('usersProgress'),
+                groupsProgress: document.getElementById('groupsProgress'),
+                computersProgress: document.getElementById('computersProgress'),
+                gposProgress: document.getElementById('gposProgress'),
+                filterInput: document.getElementById('filterInput'),
+                usersFileInput: document.getElementById('usersFileInput'),
+                groupsFileInput: document.getElementById('groupsFileInput'),
+                computersFileInput: document.getElementById('computersFileInput'),
+                gposFileInput: document.getElementById('gposFileInput'),
+                outputUsers: document.getElementById('output-users'),
+                outputGroups: document.getElementById('output-groups'),
+                outputComputers: document.getElementById('output-computers'),
+                outputGpos: document.getElementById('output-gpos')
+            };
+
+            function togglePanelVisibility(checkbox, panel) {
+                panel.className = checkbox.checked ? "visible" : "hidden";
+            }
+
+            function handleFileUpload(event, output) {
+                const file = event.target.files[0];
+                if (file && file.type === 'application/json') {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (event.target.id === "usersFileInput") {
+                                allUsers = data;
+                                displayedUsers = [...allUsers];
+                            } else if (event.target.id === "groupsFileInput") {
+                                allGroups = data;
+                                displayedGroups = [...allGroups];
+                            } else if (event.target.id === "computersFileInput") {
+                                allComputers = data;
+                                displayedComputers = [...allComputers];
+                            }  else if (event.target.id === "gposFileInput") {
+                                allGpos = data;
+                                displayedGpos = [...allGpos];
+                            }
+                            applyFilter();
+                        } catch (error) {
+                            showError(output, `Error loading JSON: ${error.message}`);
+                        }
+                    };
+                    reader.onerror = () => showError(output, 'Error loading file.');
+                    reader.readAsText(file);
+                } else {
+                    showError(output, 'Please upload a valid JSON file.');
+                }
+            }
+
+            function applyFilter() {
+                const query = elements.filterInput.value.toLowerCase();
+                displayedUsers = filterData(allUsers, query, ["dn", "name", "title", "l", "c", "telephoneNumber", "physicalDeliveryOfficeName", "mail", "userAccountControl", "mobile", "sAMAccountName", "userPrincipalName", "memberOf", "lastLogon", "pwdLastSet", "description"]);
+                displayedGroups = filterData(allGroups, query, ["dn", "name", "description", "displayName", "member"]);
+                displayedComputers = filterData(allComputers, query, ["dn", "name", "description", "physicalDeliveryOfficeName", "userAccountControl", "servicePrincipalName", "sAMAccountName", "userPrincipalName", "lastLogonTimestamp", "pwdLastSet"]);
+                displayedGpos = filterData(allGpos, query, ["dn", "name", "description", "displayName"]);
+
+                displayData(elements.outputUsers, displayedUsers, "user");
+                displayData(elements.outputGroups, displayedGroups, "group");
+                displayData(elements.outputComputers, displayedComputers, "computer");
+                displayData(elements.outputGpos, displayedGpos, "gpo");
+            }
+
+            function filterData(data, query, keys) {
+                return data.filter(item => keys.some(key => item[key] && item[key].toString().toLowerCase().includes(query)));
+            }
+
+            function displayData(output, data, type) {
+                output.innerHTML = '';
+                if (data.length) {
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = type;
+                        div.innerHTML = `<h2>${item.name}</h2>`;
+                        Object.entries(item).forEach(([key, value]) => {
+                            if (["userCertificate", "memberOf", "msDS-KeyCredentialLink"].includes(key)) {
+                                div.innerHTML += `<p><details closed><summary><strong>${key}</strong></summary><p>${value}</p></details></p>`;
+                            } else {
+                                div.innerHTML += `<p><strong>${key}:</strong> ${value}</p>`;
+                            }
+                        });
+                        output.appendChild(div);
+                    });
+                } else {
+                    output.textContent = `No ${type}s found. Load a file or refine your filters.`;
+                }
+            }
+
+            function showError(output, message) {
+                output.textContent = message;
+                console.error(message);
+            }
+
+            function convertToCSV(json) {
+                const headers = Object.keys(json[0]);
+                const csvRows = [headers.join(',')];
+                for (const row of json) {
+                    const values = headers.map(header => `"${('' + row[header]).replace(/"/g, '\\"')}"`);
+                    csvRows.push(values.join(','));
+                }
+                return csvRows.join('\n');
+            }
+
+            function downloadCSV(data, filename) {
+                const csv = convertToCSV(data);
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.hidden = true;
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            document.getElementById('saveButtonUsers').addEventListener('click', () => downloadCSV(displayedUsers, 'users.csv'));
+            document.getElementById('saveButtonGroups').addEventListener('click', () => downloadCSV(displayedGroups, 'groups.csv'));
+            document.getElementById('saveButtonComputers').addEventListener('click', () => downloadCSV(displayedComputers, 'computers.csv'));
+            document.getElementById('saveButtonGpos').addEventListener('click', () => downloadCSV(displayedGpos, 'computers.csv'));
+
+            elements.usersFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputUsers));
+            elements.groupsFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputGroups));
+            elements.computersFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputComputers));
+            elements.gposFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputGpos));
+
+            elements.filterInput.addEventListener('input', applyFilter);
+
+            [elements.usersCheck, elements.groupsCheck, elements.computersCheck, elements.gposCheck].forEach((checkbox, index) => {
+                const panel = [elements.usersPanel, elements.groupsPanel, elements.computersPanel, elements.gposPanel][index];
+                togglePanelVisibility(checkbox, panel);
+                checkbox.addEventListener('change', () => togglePanelVisibility(checkbox, panel));
+            });
+
+            const toggleButton = document.getElementById('toggleButton');
+            document.body.classList.toggle('dark-mode', window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            toggleButton.addEventListener('click', () => {
+                document.body.classList.toggle('light-mode');
+                document.body.classList.toggle('dark-mode');
+            });
+        });
+    </script>
+<!--
+'''
+import argparse
+import base64
+import json
+import datetime
+import os
+import re
+
+uac_values = {
+    512: 'Enabled',
+    514: 'Disabled',
+    528: 'Enabled - Locked Out',
+    530: 'Disabled - Locked Out',
+    544: 'Enabled - Password Not Required',
+    546: 'Disabled - Password Not Required',
+    560: 'Enabled - Password Not Required - Locked Out',
+    640: 'Enabled - Encrypted Text Password Allowed',
+    2048: 'Enabled - Interdomain Trust Account',
+    2050: 'Disabled - Interdomain Trust Account',
+    2080: 'Enabled - Interdomain Trust Account - Password Not Required',
+    2082: 'Disabled - Interdomain Trust Account - Password Not Required',
+    4096: 'Enabled - Workstation Trust Account',
+    4098: 'Disabled - Workstation Trust Account',
+    4128: 'Enabled - Workstation Trust Account - Password Not Required',
+    4130: 'Disabled - Workstation Trust Account - Password Not Required',
+    8192: 'Enabled - Server Trust Account',
+    8194: 'Disabled - Server Trust Account',
+    66048: 'Enabled - Password Does Not Expire',
+    66050: 'Disabled - Password Does Not Expire',
+    66056: 'Enabled - Password Does Not Expire - HomeDir Required',
+    66064: 'Enabled - Password Does Not Expire - Locked Out',
+    66066: 'Disabled - Password Does Not Expire - Locked Out',
+    66080: 'Enabled - Password Does Not Expire - Password Not Required',
+    66082: 'Disabled - Password Does Not Expire - Password Not Required',
+    66176: 'Enabled - Password Does Not Expire - Encrypted Text Password Allowed',
+    69632: 'Enabled - Workstation Trust Account - Dont Expire Password',
+    131584: 'Enabled - Majority Node Set (MNS) Account',
+    131586: 'Disabled - Majority Node Set (MNS) Account',
+    131600: 'Enabled - Majority Node Set (MNS) Account - Locked Out',
+    197120: 'Enabled - Majority Note Set (MNS) Account - Password Does Not Expire',
+    262656: 'Enabled - Smartcard Required',
+    262658: 'Disabled - Smartcard Required',
+    28416: 'Enabled - Workstation Trust Account - Trusted for Delegation - Password Not Required',
+    528418: 'Disabled - Workstation Trust Account - Trusted for Delegation - Password Not Required',
+    532480: 'Server Trust Account - Trusted For Delegation (Domain Controller)',
+    532482: 'Disabled - Server Trust Account - Trusted For Delegation (Domain Controller)',
+    590336: 'Enabled - Password Does Not Expire - Trusted For Delegation',
+    590338: 'Disabled - Password Does Not Expire - Trusted For Delegation',
+    1049088: 'Enabled - Not Delegated',
+    1049090: 'Disabled - Not Delegated',
+    1114624: 'Enabled - Password Does Not Expire - Not Delegated',
+    1114626: 'Disabled - Password Does Not Expire - Not Delegated',
+    1114656: 'Enabled - Password Not Required - Password Does Not Expire - Not Delegated',
+    2097664: 'Enabled - Use DES Key Only',
+    2163200: 'Enabled - Password Does Not Expire - Use DES Key Only',
+    2687488: 'Enabled - Password Does Not Expire - Trusted For Delegation - Use DES Key Only',
+    3211776: 'Enabled - Password Does Not Expire - Not Delegated - Use DES Key Only',
+    4194816: 'Enabled - PreAuthorization Not Required',
+    4260352: 'Enabled - Password Does Not Expire - PreAuthorization Not Required',
+    4260354: 'Disabled - Password Does Not Expire - PreAuthorization Not Required',
+    16781312: 'Enabled - Workstation Trust Account - Trusted to Authenticate For Delegation',
+    16843264: 'Enabled - Password Does Not Expire - Trusted to Authenticate For Delegation',
+    83890176: 'Enabled - Server Trust Account - Trusted For Delegation - (Read-Only Domain Controller (RODC))'
+}
+
+def is_base64(s):
+    if len(s) % 4 != 0:
+        return False
+    
+    base64_pattern = re.compile(r'^[A-Za-z0-9+/]+={0,2}$')
+    if not base64_pattern.match(s):
+        return False
+    
+    try:
+        base64.b64decode(s, validate=True)
+        return True
+    except Exception:
+        return False
+
+def decode_base64(s):
+    try:
+        decoded_bytes = base64.b64decode(s)
+        return decoded_bytes.decode('utf-8')
+    except Exception as e:
+        return s
+
+def convert_domain_to_dn(domain):
+    return ','.join(f'dc={part}' for part in domain.split('.'))
+
+def ad_timestamp_to_datetime(ad_timestamp):
+    try:
+        seconds = int(ad_timestamp) / 10**7
+        windows_epoch_start = datetime.datetime(1601, 1, 1)
+        return (windows_epoch_start + datetime.timedelta(seconds=seconds)).isoformat()
+    except:
+        return ad_timestamp
+
+def parse_key_value(key, value):
+    if key in ["lastLogon", "pwdLastSet", "accountExpires", "badPasswordTime", "lastLogonTimestamp"]:
+        return ad_timestamp_to_datetime(value)
+    
+    if key in ["userAccountControl"]:
+        return f"{value} - {uac_values.get(int(value))}"
+    
+    base64val = value[2:]
+
+    if is_base64(base64val):
+        if key not in ["userCertificate"]:
+            return decode_base64(base64val)
+        
+    return value
+
+def main():
+    parser = argparse.ArgumentParser(description='Parse ldapsearch output into json')
+    parser.add_argument('results_dir', help='Results directory')
+    args = parser.parse_args()
+    results_dir = args.results_dir
+    users = []
+    groups = []
+    computers = []
+    gpos = []
+    
+    files = [f"{results_dir}/"+f for f in os.listdir(results_dir) if "ldif" in f]
+
+    for filename in files:
+        try:
+            with open(filename, "r") as file:
+                lines = file.read().strip().split('\n\n')
+        except FileNotFoundError:
+            print(f"[!] Specified file {filename} was not found")
+            return
+                
+        for block in lines:
+            entry = {}
+            for line in block.split('\n'):
+                if ':' in line:
+                    key, value = map(str.strip, line.split(':', 1))
+                    if key in ["memberOf", "dsCorePropagationData", "member", "objectClass", "servicePrincipalName", "userCertificate"]:
+                        if not entry.get(key):
+                            entry[key] = value
+                        else: 
+                            entry[key] = entry[key] + "<br>" + value
+                    else:
+                        entry[key] = value
+            if entry:
+                if "USERS.ldif" in filename:
+                    users.append(entry)
+                if "COMPUTERS.ldif" in filename:
+                    computers.append(entry)
+                if "GROUPS.ldif" in filename:
+                    groups.append(entry)
+                if "GPOS.ldif" in filename:
+                    gpos.append(entry)
+
+    for user in users:
+        user.update({ key: parse_key_value(key, value) for key, value in user.items() })
+
+    for group in groups:
+        group.update({ key: parse_key_value(key, value) for key, value in group.items() })
+
+    for computer in computers:
+        computer.update({ key: parse_key_value(key, value) for key, value in computer.items() })
+    
+    for gpo in gpos:
+        gpo.update({ key: parse_key_value(key, value) for key, value in gpos.items() })
+
+    with open(f"{results_dir}/USERS.json", "w") as fh:
+        fh.write(json.dumps(users))
+
+    with open(f"{results_dir}/GROUPS.json", "w") as fh:
+        fh.write(json.dumps(groups))
+
+    with open(f"{results_dir}/COMPUTERS.json", "w") as fh:
+        fh.write(json.dumps(computers))
+
+    with open(f"{results_dir}/GPOS.json", "w") as fh:
+        fh.write(json.dumps(gpos))
+
+if __name__ == "__main__":
+    main()
+''''
+Yes, this line is a limbo. PowerShell below. The powershell script will try to get the current user credentials.
+#>
+$ldapServer = Read-Host "Enter the LDAP server (e.g., LDAP://yourdomain.com)"
+$domain = Read-Host "Enter the domain components (e.g., DC=yourdomain,DC=com)"
+
+function Get-Credentials {
+    $useCurrentUser = Read-Host "Do you want to use the current user credentials? (Y/N)"
+    
+    if ($useCurrentUser -eq 'Y' -or $useCurrentUser -eq 'y') {
+        $username = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+        $password = $null # Current user credentials don't require a password prompt
+        $passwordPlain = $null
+    } else {
+        $username = Read-Host "Enter the username (e.g., yourdomain\\username)"
+        $password = Read-Host "Enter the password" -AsSecureString
+        $passwordPlain = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))
+    }
+
+    return @{Username = $username; PasswordPlain = $passwordPlain}
+}
+
+$creds = Get-Credentials
+$username = $creds.Username
+$passwordPlain = $creds.PasswordPlain
+
+$sysvolServer = Read-Host "Enter the SYSVOL server (e.g., \\yourdomain.com)"
+$sysvolDomain = Read-Host "Enter the domain name (e.g., yourdomain)"
+
+$userAttributes = @(
+    "sAMAccountName", "userPrincipalName", "memberOf", "primaryGroupID", "adminCount",
+    "userAccountControl", "description", "servicePrincipalName", "objectSid", "pwdLastSet",
+    "lastLogon", "accountExpires", "adminDescription", "adminDisplayName", "ADsPath",
+    "altRecipient", "altRecipientBL", "authOrig", "authOrigBL", "autoReplyMessage",
+    "badPasswordTime", "badPwdCount", "canonicalName", "Class", "co", "comment",
+    "company", "countryCode", "createTimeStamp", "deletedItemFlags", "delivContLength",
+    "deliverAndRedirect", "department", "departmentNumber", "description", "directReports",
+    "displayName", "displayNamePrintable", "distinguishedName", "division", "dLMemRejectPerms",
+    "dLMemRejectPermsBL", "dLMemSubmitPerms", "dLMemSubmitPermsBL", "employeeID", "employeeNumber",
+    "employeeType", "extensionData", "extensionAttribute1", "extensionAttribute2",
+    "extensionAttribute3", "extensionAttribute4", "extensionAttribute5", "extensionAttribute6",
+    "extensionAttribute7", "extensionAttribute8", "extensionAttribute9", "extensionAttribute10",
+    "extensionAttribute11", "extensionAttribute12", "extensionAttribute13", "extensionAttribute14",
+    "extensionAttribute15", "facsimileTelephoneNumber", "garbageCollPeriod", "givenName",
+    "homeDirectory", "homeDrive", "homeMDB", "homeMTA", "homePhone", "info", "initials",
+    "ipPhone", "isDeleted", "isRecycled", "l", "lastKnownParent", "lastLogoff", "lastLogon",
+    "lastLogonTimestamp", "legacyExchangeDN", "lockoutTime", "logonCount", "logonHours",
+    "mail", "mailNickname", "manager", "mDBOverHardQuotaLimit", "mDBOverQuotaLimit", "mDBStorageQuota",
+    "mDBUseDefaults", "memberOf", "mobile", "modifyTimeStamp", "msCOM-UserPartitionSetLink",
+    "msDS-User-Account-Control-Computed", "msDS-UserPasswordExpiryTimeComputed",
+    "msExchHideFromAddressLists", "msExchHomeServerName", "msExchMailboxSecurityDescriptor",
+    "msExchMasterAccountSID", "msExchOmaAdminWirelessEnable", "msExchPoliciesExcluded",
+    "msExchRecipLimit", "msExchRequireAuthToSendTo", "msExchUserAccountControl", "msNPAllowDialin",
+    "msNPCallingStationID", "msNPSavedCallingStationID", "msRADIUSCallbackNumber",
+    "msRADIUSFramedIPAddress", "msRADIUSFramedRoute", "msRADIUSServiceType", "msRASSavedCallbackNumber",
+    "msRASSavedFramedIPAddress", "msRASSavedFramedRoute", "msSFU30GidNumber", "msSFU30HomeDirectory",
+    "msSFU30LoginShell", "msSFU30Name", "msSFU30NisDomain", "msSFU30Password", "msSFU30UidNumber",
+    "name", "nTSecurityDescriptor", "objectCategory", "objectClass", "objectGUID", "objectSid",
+    "otherFacsimileTelephoneNumber", "otherHomePhone", "otherIpPhone", "otherMobile", "otherPager",
+    "otherTelephone", "pager", "Parent", "physicalDeliveryOfficeName", "postalCode", "postOfficeBox",
+    "primaryGroupID", "profilePath", "protocolSettings", "proxyAddresses", "publicDelegates",
+    "publicDelegatesBL", "pwdLastSet", "sAMAccountName", "scriptPath", "seeAlso", "securityProtocol",
+    "sIDHistory", "sn", "st", "streetAddress", "submissionContLength", "telephoneNumber",
+    "textEncodedORAddress", "title", "unauthOrig", "unauthOrigBL", "url", "userAccountControl",
+    "userCertificate", "userParameters", "userPrincipalName", "userWorkstations", "uSNChanged",
+    "uSNCreated", "whenChanged", "whenCreated", "wWWHomePage"
+)
+
+$groupAttributes = @(
+    "adminDescription", "adminDisplayName", "ADsPath", "authOrig", "authOrigBL", "canonicalName",
+    "Class", "cn", "createTimeStamp", "delivContLength", "description", "displayName",
+    "displayNamePrintable", "distinguishedName", "dLMemRejectPerms", "dLMemRejectPermsBL",
+    "dLMemSubmitPerms", "dLMemSubmitPermsBL", "extensionAttribute", "groupType", "homeMTA",
+    "info", "isDeleted", "legacyExchangeDN", "mail", "mailNickName", "managedBy", "member",
+    "memberOf", "modifyTimeStamp", "msExchExpansionServerName", "msExchHideFromAddressLists",
+    "msExchHomeServerName", "msExchRequireAuthToSendTo", "msSFU30GidNumber", "msSFU30Name",
+    "msSFU30NisDomain", "msSFU30PosixMember", "name", "Name", "nTSecurityDescriptor",
+    "objectCategory", "objectClass", "objectGUID", "objectSid", "oOFReplyToOriginator", "Parent",
+    "primaryGroupToken", "proxyAddresses", "reportToOriginator", "reportToOwner", "sAMAccountName",
+    "telephoneNumber", "textEncodedORAddress", "unauthOrig", "unauthOrigBL", "uSNChanged",
+    "uSNCreated", "whenChanged", "whenCreated"
+)
+
+$computerAttributes = @(
+    "accountExpires", "adminDescription", "adminDisplayName", "ADsPath", "authOrig", "authOrigBL",
+    "canonicalName", "Class", "cn", "createTimeStamp", "delivContLength", "description",
+    "displayName", "displayNamePrintable", "distinguishedName", "dLMemRejectPerms", "dLMemRejectPermsBL",
+    "dLMemSubmitPerms", "dLMemSubmitPermsBL", "extensionAttribute", "homeMTA", "info", "isDeleted",
+    "legacyExchangeDN", "mail", "mailNickName", "managedBy", "member", "memberOf", "modifyTimeStamp",
+    "msExchExpansionServerName", "msExchHideFromAddressLists", "msExchHomeServerName",
+    "msExchRequireAuthToSendTo", "msSFU30GidNumber", "msSFU30Name", "msSFU30NisDomain",
+    "msSFU30PosixMember", "name", "Name", "nTSecurityDescriptor", "objectCategory", "objectClass",
+    "objectGUID", "objectSid", "oOFReplyToOriginator", "Parent", "primaryGroupToken", "proxyAddresses",
+    "reportToOriginator", "reportToOwner", "sAMAccountName", "telephoneNumber", "textEncodedORAddress",
+    "unauthOrig", "unauthOrigBL", "uSNChanged", "uSNCreated", "whenChanged", "whenCreated"
+)
+
+$gpoAttributes = @(
+    "displayName", "cn", "name", "gPCFileSysPath", "gPCFunctionalityVersion", "gPCMachineExtensionNames",
+    "gPCUserExtensionNames", "whenCreated", "whenChanged", "uSNCreated", "uSNChanged", "objectGUID", "objectSid"
+)
+
+function Get-DirectorySearcherResults {
+    param (
+        [string]$filter,
+        [string[]]$attributes,
+        [string]$filename
+    )
+
+    $directoryEntry = New-Object DirectoryServices.DirectorySearcher
+    $directoryEntry.SearchRoot = New-Object DirectoryServices.DirectorySearcher("LDAP://$ldapServer")
+    $directoryEntry.SearchRoot.AuthenticationType = [System.DirectoryServices.AuthenticationTypes]::Secure
+    $searcher = $directoryEntry
+    $searcher.Filter = $filter
+    $searcher.PropertiesToLoad.AddRange($attributes)
+    $results = $searcher.FindAll()
+
+    $output = @()
+    foreach ($result in $results) {
+        $entry = $result.Properties
+        $properties = @{}
+        foreach ($attribute in $attributes) {
+            $properties[$attribute] = if ($entry[$attribute]) { $entry[$attribute] -join "; " } else { $null }
+        }
+        $output += [PSCustomObject]$properties
+    }
+    $output | ConvertTo-Json -Depth 10 | Out-File (Join-Path -Path $resultsPath -ChildPath $filename)
+}
+
+$resultsPath = "results"
+if (-not (Test-Path $resultsPath)) {
+    New-Item -Path $resultsPath -ItemType Directory | Out-Null
+}
+
+Get-DirectorySearcherResults -filter "(objectClass=user)" -attributes $userAttributes -filename "USERS.json"
+Get-DirectorySearcherResults -filter "(objectClass=group)" -attributes $groupAttributes -filename "GROUPS.json"
+Get-DirectorySearcherResults -filter "(objectClass=computer)" -attributes $computerAttributes -filename "COMPUTERS.json"
+Get-DirectorySearcherResults -filter "(objectClass=groupPolicyContainer)" -attributes $gpoAttributes -filename "GPOS.json"
+
+function Download-GPOs {
+    param (
+        [string]$jsonFile,
+        [string]$sysvolShare
+    )
+
+    $gpos = Get-Content $jsonFile | ConvertFrom-Json
+    $downloadPath = Join-Path -Path $resultsPath -ChildPath "GPOs"
+    if (-not (Test-Path $downloadPath)) {
+        New-Item -Path $downloadPath -ItemType Directory | Out-Null
+    }
+
+    foreach ($gpo in $gpos) {
+        $gpoName = $gpo.displayName
+        $gpoPath = $gpo.gPCFileSysPath
+
+        if ($gpoPath) {
+            $gpoFolder = [System.IO.Path]::GetFileName($gpoPath.TrimEnd('\'))
+            $sourcePath = Join-Path -Path $sysvolShare -ChildPath $gpoFolder
+            $destinationPath = Join-Path -Path $downloadPath -ChildPath $gpoFolder
+
+            if (-not (Test-Path $destinationPath)) {
+                New-Item -Path $destinationPath -ItemType Directory | Out-Null
+            }
+
+            Write-Output "Downloading GPO: $gpoName"
+            Copy-Item -Path $sourcePath\* -Destination $destinationPath -Recurse -Force
+        }
+    }
+}
+
+$sysvolShare = "\\$sysvolServer\SYSVOL\$sysvolDomain\Policies"
+Download-GPOs -jsonFile (Join-Path -Path $resultsPath -ChildPath "GPOS.json") -sysvolShare $sysvolShare
+<#'''#>
