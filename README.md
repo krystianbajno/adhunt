@@ -1,5 +1,25 @@
 # ADHUNT
-ADHUNT is a polyglot (Bash, PowerShell, Python, HTML) tool for domain information gathering. It supports the following scenarios:
+ADHUNT is a polyglot file (Bash, PowerShell, Python, HTML) for domain information gathering.
+
+Just open the website, hit Save As and start your recon.
+
+**Collectors**:
+- PowerShell `New-Object DirectoryServices.DirectorySearcher`
+- Bash `ldapsearch` 
+
+**Converters**:
+- Python converter crafting JSON files from ldapsearch LDIF.
+
+**GUI**:
+- HTML GUI that runs in your browser.
+
+### It supports the following scenarios:
+
+- Run the HTML file as a PowerShell script to dump domain information using the PowerShell, including all users, groups, computers, and group policies:
+```bash
+iex(gc -path adhunt.html -raw) # From local file
+iwr https://adhunt.netlify.app | iex # Download and execute in memory
+```
 
 - Run the HTML file as a Bash script to dump domain information (requires ldapsearch), including all users, groups, computers, and group policies:
 ```bash
@@ -8,11 +28,6 @@ bash adhunt.html # You will be prompted for credentials
 curl https://adhunt.netlify.app | bash # Download and execute in memory
 ```
 
-- Run the HTML file as a PowerShell script to dump domain information using the PowerShell `New-Object DirectoryServices.DirectorySearcher`, including all users, groups, computers, and group policies:
-```bash
-iex(gc -path adhunt.html -raw) # From local file
-iwr https://adhunt.netlify.app | iex # Download and execute in memory
-```
 The PowerShell will try to get current user credentials automatically, but you will be prompted if you want to use custom ones. Useful on hardened AD computers.
 
 - Run the HTML file with Python to parse LDIF ldapsearch results into JSON for use in the HTML GUI:
