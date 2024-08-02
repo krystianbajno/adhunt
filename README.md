@@ -55,6 +55,7 @@ curl https://adhunt.netlify.app > adhunt.html
 wget https://adhunt.netlify.app
 Browser -> right click -> Save as -> adhunt.html
 ```
+The tool requires no installation however, as you can run it completely in memory in order to dump domain information, and then parse the results using your browser at https://adhunt.netlify.app.
 
 ### Todo
 - Python domain information collector
