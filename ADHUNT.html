@@ -1,5 +1,5 @@
 ''''
-echo `# <# <!--` 
+echo `# <# <!--`
 # ADHUNT v0.0.1
 # server, domain, user, password
 # $1       $2      $3     $4
@@ -123,7 +123,7 @@ function getusers {
         proxyAddresses reportToOriginator reportToOwner \
         sAMAccountName telephoneNumber textEncodedORAddress \
         unauthOrig unauthOrigBL uSNChanged \
-        uSNCreated whenChanged whenCreated -E pr=1000/noprompt \ > results/GROUPS.ldif
+        uSNCreated whenChanged whenCreated -E pr=1000/noprompt > results/GROUPS.ldif
 
     ldapsearch -LLL -x -H "ldap://$server" -D "$username" -w "$password" -b "$domain" -o ldif-wrap=no "(&(objectClass=computer))" -E pr=1000/noprompt > results/COMPUTERS.ldif
 
@@ -164,7 +164,7 @@ iex(gc -path adhunt.html -raw)
 
         body {
             font-family: Consolas, 'Courier New', monospace;
-            font-size: 16px;
+            font-size: 1px;
             transition: 1s;
         }
 
@@ -257,6 +257,7 @@ iex(gc -path adhunt.html -raw)
 
         button {
             font-size: 16px;
+            min-width: 140px;
             cursor: pointer;
         }
 
@@ -268,7 +269,6 @@ iex(gc -path adhunt.html -raw)
             display: flex;
             align-items: center;
             text-align: center;
-            gap: 4px;
         }
 
         .check {
@@ -301,6 +301,11 @@ iex(gc -path adhunt.html -raw)
             margin-top: 16px;
             letter-spacing: 2px;
         }
+        .panel, #controlsFilters {
+            display: flex;
+            gap: 16px;
+        }
+
     </style>
 </head>
 <body class="dark-mode">
@@ -325,36 +330,44 @@ iex(gc -path adhunt.html -raw)
         </div>
         <div id="users-panel" class="visible">
             <h1>Users</h1>
-            <button id="saveButtonUsers">Save .csv</button>
-            <input type="file" id="usersFileInput"/>
-            <div class="progress" id="usersProgress"></div>
-            <div class="output" id="output-users"></div>
+            <div class="panel">
+                <button id="saveButtonUsers">Save .csv</button>
+                <input type="file" id="usersFileInput"/>
+                <div class="progress" id="usersProgress"></div>
+                <div class="output" id="output-users"></div>
+            </div>
         </div>
         <div id="groups-panel" class="hidden">
             <h1>Groups</h1>
-            <button id="saveButtonGroups">Save .csv</button>
-            <input type="file" id="groupsFileInput"/>
-            <div class="progress" id="groupsProgress"></div>
-            <div class="output" id="output-groups"></div>
+            <div class="panel">
+                <button id="saveButtonGroups">Save .csv</button>
+                <input type="file" id="groupsFileInput"/>
+                <div class="progress" id="groupsProgress"></div>
+                <div class="output" id="output-groups"></div>
+            </div>
         </div>
         <div id="computers-panel" class="hidden">
             <h1>Computers</h1>
-            <button id="saveButtonComputers">Save .csv</button>
-            <input type="file" id="computersFileInput"/>
-            <div class="progress" id="computersProgress"></div>
-            <div class="output" id="output-computers"></div>
+            <div class="panel">
+                <button id="saveButtonComputers">Save .csv</button>
+                <input type="file" id="computersFileInput"/>
+                <div class="progress" id="computersProgress"></div>
+                <div class="output" id="output-computers"></div>
+            </div>
         </div>
         <div id="gpos-panel" class="hidden">
             <h1>Group Policies</h1>
-            <button id="saveButtonGpos">Save .csv</button>
-            <input type="file" id="gposFileInput"/>
-            <div class="progress" id="gposProgress"></div>
-            <div class="output" id="output-gpos"></div>
+            <div class="panel">
+                <button id="saveButtonGpos">Save .csv</button>
+                <input type="file" id="gposFileInput"/>
+                <div class="progress" id="gposProgress"></div>
+                <div class="output" id="output-gpos"></div>
+            </div>
         </div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            let allUsers = [], allGroups = [], allComputers = [];
+            let allUsers = [], allGroups = [], allComputers = [], allGpos = [];
             let displayedUsers = [], displayedGroups = [], displayedComputers = [];
 
             document.getElementById('date').textContent = new Date().toLocaleString();
@@ -677,7 +690,7 @@ def main():
         computer.update({ key: parse_key_value(key, value) for key, value in computer.items() })
     
     for gpo in gpos:
-        gpo.update({ key: parse_key_value(key, value) for key, value in gpos.items() })
+        gpo.update({ key: parse_key_value(key, value) for key, value in gpo.items() })
 
     with open(f"{results_dir}/USERS.json", "w") as fh:
         fh.write(json.dumps(users))
@@ -832,37 +845,4 @@ Get-DirectorySearcherResults -filter "(objectClass=group)" -attributes $groupAtt
 Get-DirectorySearcherResults -filter "(objectClass=computer)" -attributes $computerAttributes -filename "COMPUTERS.json"
 Get-DirectorySearcherResults -filter "(objectClass=groupPolicyContainer)" -attributes $gpoAttributes -filename "GPOS.json"
 
-function Download-GPOs {
-    param (
-        [string]$jsonFile,
-        [string]$sysvolShare
-    )
-
-    $gpos = Get-Content $jsonFile | ConvertFrom-Json
-    $downloadPath = Join-Path -Path $resultsPath -ChildPath "GPOs"
-    if (-not (Test-Path $downloadPath)) {
-        New-Item -Path $downloadPath -ItemType Directory | Out-Null
-    }
-
-    foreach ($gpo in $gpos) {
-        $gpoName = $gpo.displayName
-        $gpoPath = $gpo.gPCFileSysPath
-
-        if ($gpoPath) {
-            $gpoFolder = [System.IO.Path]::GetFileName($gpoPath.TrimEnd('\'))
-            $sourcePath = Join-Path -Path $sysvolShare -ChildPath $gpoFolder
-            $destinationPath = Join-Path -Path $downloadPath -ChildPath $gpoFolder
-
-            if (-not (Test-Path $destinationPath)) {
-                New-Item -Path $destinationPath -ItemType Directory | Out-Null
-            }
-
-            Write-Output "Downloading GPO: $gpoName"
-            Copy-Item -Path $sourcePath\* -Destination $destinationPath -Recurse -Force
-        }
-    }
-}
-
-$sysvolShare = "\\$sysvolServer\SYSVOL\$sysvolDomain\Policies"
-Download-GPOs -jsonFile (Join-Path -Path $resultsPath -ChildPath "GPOS.json") -sysvolShare $sysvolShare
 <#'''#>
