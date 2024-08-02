@@ -439,6 +439,7 @@ iex(gc -path adhunt.html -raw)
 
             function applyFilter() {
                 const query = elements.filterInput.value.toLowerCase();
+                window.location.hash = query
                 displayedUsers = filterData(allUsers, query, ["dn", "name", "title", "l", "c", "telephoneNumber", "physicalDeliveryOfficeName", "mail", "userAccountControl", "mobile", "sAMAccountName", "userPrincipalName", "memberOf", "lastLogon", "pwdLastSet", "description"]);
                 displayedGroups = filterData(allGroups, query, ["dn", "name", "description", "displayName", "member"]);
                 displayedComputers = filterData(allComputers, query, ["dn", "name", "description", "physicalDeliveryOfficeName", "userAccountControl", "servicePrincipalName", "sAMAccountName", "userPrincipalName", "lastLogonTimestamp", "pwdLastSet"]);
@@ -514,6 +515,11 @@ iex(gc -path adhunt.html -raw)
             elements.gposFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputGpos));
 
             elements.filterInput.addEventListener('change', applyFilter);
+            
+            addEventListener("hashchange", (event) => {
+                elements.filterInput.value = location.hash.substring(1)
+                applyFilter()
+            });
 
             [elements.usersCheck, elements.groupsCheck, elements.computersCheck, elements.gposCheck].forEach((checkbox, index) => {
                 const panel = [elements.usersPanel, elements.groupsPanel, elements.computersPanel, elements.gposPanel][index];
