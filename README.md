@@ -63,4 +63,5 @@ The tool requires no installation however, as you can run it completely in memor
 
 ---
 Copyright © Krystian Bajno 2024 
-This tool was originally stored here (https://github.com/krystianbajno/armory)
+
+This tool was originally stored here (https://github.com/krystianbajno/armory), but why not release it from custody. Enjoy
