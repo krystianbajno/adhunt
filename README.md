@@ -62,5 +62,5 @@ The tool requires no installation however, as you can run it completely in memor
 - BloodHound data converter
 
 ---
-
-This tool was originally stored here (https://github.com/krystianbajno/armory), but I decided to make it public.
+Copyright © Krystian Bajno 2024 
+This tool was originally stored here (https://github.com/krystianbajno/armory)
