@@ -513,7 +513,7 @@ iex(gc -path adhunt.html -raw)
             elements.computersFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputComputers));
             elements.gposFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputGpos));
 
-            elements.filterInput.addEventListener('input', applyFilter);
+            elements.filterInput.addEventListener('change', applyFilter);
 
             [elements.usersCheck, elements.groupsCheck, elements.computersCheck, elements.gposCheck].forEach((checkbox, index) => {
                 const panel = [elements.usersPanel, elements.groupsPanel, elements.computersPanel, elements.gposPanel][index];
