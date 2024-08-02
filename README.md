@@ -60,6 +60,7 @@ The tool requires no installation however, as you can run it completely in memor
 ### Todo
 - Python domain information collector
 - BloodHound data converter
+- Webhook encrypted extraction
 
 ---
 Copyright © Krystian Bajno 2024
