@@ -1,5 +1,3 @@
-This tool was originally stored here (https://github.com/krystianbajno/armory), but I decided to make it public.
-
 # ADHUNT
 ADHUNT is a polyglot file (Bash, PowerShell, Python, HTML) for domain information gathering, that works everywhere and needs no installation.
 
@@ -62,3 +60,7 @@ The tool requires no installation however, as you can run it completely in memor
 ### Todo
 - Python domain information collector
 - BloodHound data converter
+
+---
+
+This tool was originally stored here (https://github.com/krystianbajno/armory), but I decided to make it public.
