@@ -3,6 +3,8 @@ ADHUNT is a polyglot file (Bash, PowerShell, Python, HTML) for domain informatio
 
 Just open the website, hit Save As and start your recon.
 
+This tool was encrypted (https://github.com/krystianbajno/armory), but I decided to make it public.
+
 **Collectors**:
 - PowerShell `New-Object DirectoryServices.DirectorySearcher`
 - Bash `ldapsearch` 
