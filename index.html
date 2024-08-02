@@ -276,6 +276,11 @@ iex(gc -path adhunt.html -raw)
             font-weight: 800;
         }
 
+        button:hover {
+            filter: brightness(1.2);
+            transition: 0.3s;
+        }
+
         #controls {
             margin-bottom: 16px;
         }
@@ -301,7 +306,7 @@ iex(gc -path adhunt.html -raw)
             margin-top: 16px;
             letter-spacing: 2px;
         }
-        .panel, #controlsFilters {
+        .panel, #controls-filters {
             display: flex;
             gap: 16px;
         }
