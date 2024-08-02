@@ -1,4 +1,4 @@
-This tool was encrypted (https://github.com/krystianbajno/armory), but I decided to make it public.
+This tool was originally stored here (https://github.com/krystianbajno/armory), but I decided to make it public.
 
 # ADHUNT
 ADHUNT is a polyglot file (Bash, PowerShell, Python, HTML) for domain information gathering, that works everywhere and needs no installation.
