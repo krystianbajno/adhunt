@@ -80,7 +80,7 @@ For example, to find all managers:
 - From the browser:
   - Right-click -> Save As -> `adhunt.html`
 
-ADHUNT requires no installation and can run completely in memory to dump domain information, then parse results in your browser.
+ADHUNT requires no installation and can run completely in memory to dump domain information, then parse results locally in your browser at https://adhunt.netlify.app.
 
 ## Todo
 
