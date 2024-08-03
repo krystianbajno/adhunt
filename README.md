@@ -2,7 +2,7 @@
 
 **ADHUNT** is a versatile polyglot file (Bash, PowerShell, Python, HTML) for gathering domain information. It works anywhere without requiring installation.
 
-To get started, simply open the website, save the file, and begin your reconnaissance.
+To get started, simply open the website, save the file or run it in memory, and begin your reconnaissance.
 
 ### Collectors:
 
