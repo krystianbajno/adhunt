@@ -16,7 +16,7 @@
 
 ### GUI:
 
-- **HTML**: Runs directly in your browser.
+- **HTML**: Runs directly in your browser as a static website and is not communicating with hosting HTTP server. You can run it locally or remotely.
 
 ## Usage Scenarios:
 
