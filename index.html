@@ -762,29 +762,24 @@ def convert_domain_to_dn(domain):
 
 def ad_timestamp_to_datetime(ad_timestamp):
     try:
-        seconds = int(ad_timestamp) / 10**7
+        ad_timestamp = int(ad_timestamp)
+        
         windows_epoch_start = datetime.datetime(1601, 1, 1)
+        
+        max_datetime = datetime.datetime(9999, 12, 31, 23, 59, 59)
+        max_timestamp = (max_datetime - windows_epoch_start).total_seconds() * 10**7
+        
+        if ad_timestamp < 0:
+            ad_timestamp = 0
+        elif ad_timestamp > max_timestamp:
+            ad_timestamp = int(max_timestamp)
+        
+        seconds = ad_timestamp / 10**7
+        
         return (windows_epoch_start + datetime.timedelta(seconds=seconds)).isoformat()
-    except:
+    except Exception as e:
         return ad_timestamp
 
-def parse_key_value(key, value):
-    if key in ["lastLogon", "pwdLastSet", "accountExpires", "badPasswordTime", "lastLogonTimestamp"]:
-        return ad_timestamp_to_datetime(value)
-    
-    if key in ["userAccountControl"]:
-        return f"{value} - {uac_values.get(int(value))}"
-    
-    if key in ["objectSid"]:
-        sid = base64.b64decode(value)
-        return f"{convert_sid(sid)}"
-
-    if not type(value) in (tuple, list):
-        if is_base64(value):
-            if key not in ["userCertificate"]:
-                return decode_base64(value)
-
-    return value
 
 
 def convert_sid(sid):
@@ -809,6 +804,45 @@ def convert_sid(sid):
         str(sub_id)
         for sub_id in sub_ids
     ]))
+    
+def convert_guid(guid):
+    order = [4, 3, 2, 1, 6, 5, 8, 7, 9, 10, 11, 12, 13, 14, 15, 16]
+    result = ''
+
+    for i in order:
+        result += '%x' % guid[i-1]
+
+    return result
+
+def parse_key_value(key, value):
+    if key in [
+        "lastLogon",
+        "pwdLastSet",
+        "accountExpires",
+        "msDS-UserPasswordExpiryTimeComputed",
+        "ms-Mcs-AdmPwdExpirationTime",
+        "badPasswordTime",
+        "lastLogonTimestamp"
+    ]:
+        return ad_timestamp_to_datetime(value)
+    
+    if key in ["userAccountControl"]:
+        return f"{value} - {uac_values.get(int(value))}"
+    
+    if key in ["objectGUID"]:
+        guid =  base64.b64decode(value)
+        return f"{convert_guid(guid)}"
+    
+    if key in ["objectSid"]:
+        sid = base64.b64decode(value)
+        return f"{convert_sid(sid)}"
+
+    if not type(value) in (tuple, list):
+        if is_base64(value):
+            if key not in ["userCertificate", "isCriticalSystemObject", "logonCount"]:
+                return decode_base64(value)
+
+    return value
 
 # todo 
 def dump_domain(results_dir=None):
