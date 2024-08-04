@@ -11,6 +11,9 @@
 - **Python**: Converts `ldapsearch` LDIF results into ADHUNT JSON.
 - **Python**: Converts BloodHound JSON into ADHUNT JSON. (todo)
 
+### Extractors:
+- **Python**: HTTP Webhook upload server + client with AES-GCM 256 bit encryption and zip compression. (todo)
+
 ### GUI:
 
 - **HTML**: Runs directly in your browser.
