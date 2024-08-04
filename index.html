@@ -580,7 +580,7 @@ iex(gc -path adhunt.html -raw)
             elements.filterInput.addEventListener('change', applyFilter);
             
             addEventListener("hashchange", (event) => {
-                elements.filterInput.value = location.hash.substring(1)
+                elements.filterInput.value = decodeURI(location.hash.substring(1))
                 applyFilter()
             });
 
