@@ -858,140 +858,166 @@ main()
 ''''
 Yes, this line is a limbo. PowerShell below. The powershell script will try to get the current user credentials.
 #>
-$ldapServer = Read-Host "Enter the LDAP server (e.g., LDAP://yourdomain.com)"
-$domain = Read-Host "Enter the domain components (e.g., DC=yourdomain,DC=com)"
-
-function Get-Credentials {
-    $useCurrentUser = Read-Host "Do you want to use the current user credentials? (Y/N)"
-    
-    if ($useCurrentUser -eq 'Y' -or $useCurrentUser -eq 'y') {
-        $username = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-        $password = $null # Current user credentials don't require a password prompt
-        $passwordPlain = $null
-    } else {
-        $username = Read-Host "Enter the username (e.g., yourdomain\\username)"
-        $password = Read-Host "Enter the password" -AsSecureString
-        $passwordPlain = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))
-    }
-
-    return @{Username = $username; PasswordPlain = $passwordPlain}
+$uac_values = @{
+    512 = 'Enabled'
+    514 = 'Disabled'
+    528 = 'Enabled - Locked Out'
+    530 = 'Disabled - Locked Out'
+    544 = 'Enabled - Password Not Required'
+    546 = 'Disabled - Password Not Required'
+    560 = 'Enabled - Password Not Required - Locked Out'
+    640 = 'Enabled - Encrypted Text Password Allowed'
+    2048 = 'Enabled - Interdomain Trust Account'
+    2050 = 'Disabled - Interdomain Trust Account'
+    2080 = 'Enabled - Interdomain Trust Account - Password Not Required'
+    2082 = 'Disabled - Interdomain Trust Account - Password Not Required'
+    4096 = 'Enabled - Workstation Trust Account'
+    4098 = 'Disabled - Workstation Trust Account'
+    4128 = 'Enabled - Workstation Trust Account - Password Not Required'
+    4130 = 'Disabled - Workstation Trust Account - Password Not Required'
+    8192 = 'Enabled - Server Trust Account'
+    8194 = 'Disabled - Server Trust Account'
+    66048 = 'Enabled - Password Does Not Expire'
+    66050 = 'Disabled - Password Does Not Expire'
+    66056 = 'Enabled - Password Does Not Expire - HomeDir Required'
+    66064 = 'Enabled - Password Does Not Expire - Locked Out'
+    66066 = 'Disabled - Password Does Not Expire - Locked Out'
+    66080 = 'Enabled - Password Does Not Expire - Password Not Required'
+    66082 = 'Disabled - Password Does Not Expire - Password Not Required'
+    66176 = 'Enabled - Password Does Not Expire - Encrypted Text Password Allowed'
+    69632 = 'Enabled - Workstation Trust Account - Dont Expire Password'
+    131584 = 'Enabled - Majority Node Set (MNS) Account'
+    131586 = 'Disabled - Majority Node Set (MNS) Account'
+    131600 = 'Enabled - Majority Node Set (MNS) Account - Locked Out'
+    197120 = 'Enabled - Majority Note Set (MNS) Account - Password Does Not Expire'
+    262656 = 'Enabled - Smartcard Required'
+    262658 = 'Disabled - Smartcard Required'
+    28416 = 'Enabled - Workstation Trust Account - Trusted for Delegation - Password Not Required'
+    528418 = 'Disabled - Workstation Trust Account - Trusted for Delegation - Password Not Required'
+    532480 = 'Server Trust Account - Trusted For Delegation (Domain Controller)'
+    532482 = 'Disabled - Server Trust Account - Trusted For Delegation (Domain Controller)'
+    590336 = 'Enabled - Password Does Not Expire - Trusted For Delegation'
+    590338 = 'Disabled - Password Does Not Expire - Trusted For Delegation'
+    1049088 = 'Enabled - Not Delegated'
+    1049090 = 'Disabled - Not Delegated'
+    1114624 = 'Enabled - Password Does Not Expire - Not Delegated'
+    1114626 = 'Disabled - Password Does Not Expire - Not Delegated'
+    1114656 = 'Enabled - Password Not Required - Password Does Not Expire - Not Delegated'
+    2097664 = 'Enabled - Use DES Key Only'
+    2163200 = 'Enabled - Password Does Not Expire - Use DES Key Only'
+    2687488 = 'Enabled - Password Does Not Expire - Trusted For Delegation - Use DES Key Only'
+    3211776 = 'Enabled - Password Does Not Expire - Not Delegated - Use DES Key Only'
+    4194816 = 'Enabled - PreAuthorization Not Required'
+    4260352 = 'Enabled - Password Does Not Expire - PreAuthorization Not Required'
+    4260354 = 'Disabled - Password Does Not Expire - PreAuthorization Not Required'
+    16781312 = 'Enabled - Workstation Trust Account - Trusted to Authenticate For Delegation'
+    16843264 = 'Enabled - Password Does Not Expire - Trusted to Authenticate For Delegation'
+    83890176 = 'Enabled - Server Trust Account - Trusted For Delegation - (Read-Only Domain Controller (RODC))'
 }
 
-$creds = Get-Credentials
-$username = $creds.Username
-$passwordPlain = $creds.PasswordPlain
+function Is-Base64Encoded($string) {
+    if ($string.Length % 4 -ne 0) { return $false }
+    $base64Pattern = '^[A-Za-z0-9+/=]+$'
+    if ($string -notmatch $base64Pattern) { return $false }
+    try {
+        [System.Convert]::FromBase64String($string) | Out-Null
+        return $true
+    } catch {
+        return $false
+    }
+}
 
-$sysvolServer = Read-Host "Enter the SYSVOL server (e.g., \\yourdomain.com)"
-$sysvolDomain = Read-Host "Enter the domain name (e.g., yourdomain)"
+function Decode-Base64($string) {
+    try {
+        [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($string))
+    } catch {
+        return $string
+    }
+}
 
-$userAttributes = @(
-    "sAMAccountName", "userPrincipalName", "memberOf", "primaryGroupID", "adminCount",
-    "userAccountControl", "description", "servicePrincipalName", "objectSid", "pwdLastSet",
-    "lastLogon", "accountExpires", "adminDescription", "adminDisplayName", "ADsPath",
-    "altRecipient", "altRecipientBL", "authOrig", "authOrigBL", "autoReplyMessage",
-    "badPasswordTime", "badPwdCount", "canonicalName", "Class", "co", "comment",
-    "company", "countryCode", "createTimeStamp", "deletedItemFlags", "delivContLength",
-    "deliverAndRedirect", "department", "departmentNumber", "description", "directReports",
-    "displayName", "displayNamePrintable", "distinguishedName", "division", "dLMemRejectPerms",
-    "dLMemRejectPermsBL", "dLMemSubmitPerms", "dLMemSubmitPermsBL", "employeeID", "employeeNumber",
-    "employeeType", "extensionData", "extensionAttribute1", "extensionAttribute2",
-    "extensionAttribute3", "extensionAttribute4", "extensionAttribute5", "extensionAttribute6",
-    "extensionAttribute7", "extensionAttribute8", "extensionAttribute9", "extensionAttribute10",
-    "extensionAttribute11", "extensionAttribute12", "extensionAttribute13", "extensionAttribute14",
-    "extensionAttribute15", "facsimileTelephoneNumber", "garbageCollPeriod", "givenName",
-    "homeDirectory", "homeDrive", "homeMDB", "homeMTA", "homePhone", "info", "initials",
-    "ipPhone", "isDeleted", "isRecycled", "l", "lastKnownParent", "lastLogoff", "lastLogon",
-    "lastLogonTimestamp", "legacyExchangeDN", "lockoutTime", "logonCount", "logonHours",
-    "mail", "mailNickname", "manager", "mDBOverHardQuotaLimit", "mDBOverQuotaLimit", "mDBStorageQuota",
-    "mDBUseDefaults", "memberOf", "mobile", "modifyTimeStamp", "msCOM-UserPartitionSetLink",
-    "msDS-User-Account-Control-Computed", "msDS-UserPasswordExpiryTimeComputed",
-    "msExchHideFromAddressLists", "msExchHomeServerName", "msExchMailboxSecurityDescriptor",
-    "msExchMasterAccountSID", "msExchOmaAdminWirelessEnable", "msExchPoliciesExcluded",
-    "msExchRecipLimit", "msExchRequireAuthToSendTo", "msExchUserAccountControl", "msNPAllowDialin",
-    "msNPCallingStationID", "msNPSavedCallingStationID", "msRADIUSCallbackNumber",
-    "msRADIUSFramedIPAddress", "msRADIUSFramedRoute", "msRADIUSServiceType", "msRASSavedCallbackNumber",
-    "msRASSavedFramedIPAddress", "msRASSavedFramedRoute", "msSFU30GidNumber", "msSFU30HomeDirectory",
-    "msSFU30LoginShell", "msSFU30Name", "msSFU30NisDomain", "msSFU30Password", "msSFU30UidNumber",
-    "name", "nTSecurityDescriptor", "objectCategory", "objectClass", "objectGUID", "objectSid",
-    "otherFacsimileTelephoneNumber", "otherHomePhone", "otherIpPhone", "otherMobile", "otherPager",
-    "otherTelephone", "pager", "Parent", "physicalDeliveryOfficeName", "postalCode", "postOfficeBox",
-    "primaryGroupID", "profilePath", "protocolSettings", "proxyAddresses", "publicDelegates",
-    "publicDelegatesBL", "pwdLastSet", "sAMAccountName", "scriptPath", "seeAlso", "securityProtocol",
-    "sIDHistory", "sn", "st", "streetAddress", "submissionContLength", "telephoneNumber",
-    "textEncodedORAddress", "title", "unauthOrig", "unauthOrigBL", "url", "userAccountControl",
-    "userCertificate", "userParameters", "userPrincipalName", "userWorkstations", "uSNChanged",
-    "uSNCreated", "whenChanged", "whenCreated", "wWWHomePage"
-)
+function Convert-ADTimestampToDateTime($adTimestamp) {
+    try {
+        $seconds = [int]$adTimestamp / 10**7
+        $windowsEpochStart = [datetime]'1601-01-01T00:00:00Z'
+        ($windowsEpochStart + [timespan]::FromSeconds($seconds)).ToString('o')
+    } catch {
+        return $adTimestamp
+    }
+}
 
-$groupAttributes = @(
-    "adminDescription", "adminDisplayName", "ADsPath", "authOrig", "authOrigBL", "canonicalName",
-    "Class", "cn", "createTimeStamp", "delivContLength", "description", "displayName",
-    "displayNamePrintable", "distinguishedName", "dLMemRejectPerms", "dLMemRejectPermsBL",
-    "dLMemSubmitPerms", "dLMemSubmitPermsBL", "extensionAttribute", "groupType", "homeMTA",
-    "info", "isDeleted", "legacyExchangeDN", "mail", "mailNickName", "managedBy", "member",
-    "memberOf", "modifyTimeStamp", "msExchExpansionServerName", "msExchHideFromAddressLists",
-    "msExchHomeServerName", "msExchRequireAuthToSendTo", "msSFU30GidNumber", "msSFU30Name",
-    "msSFU30NisDomain", "msSFU30PosixMember", "name", "Name", "nTSecurityDescriptor",
-    "objectCategory", "objectClass", "objectGUID", "objectSid", "oOFReplyToOriginator", "Parent",
-    "primaryGroupToken", "proxyAddresses", "reportToOriginator", "reportToOwner", "sAMAccountName",
-    "telephoneNumber", "textEncodedORAddress", "unauthOrig", "unauthOrigBL", "uSNChanged",
-    "uSNCreated", "whenChanged", "whenCreated"
-)
+function Parse-KeyValue($key, $value) {
+    if ($key -in @("lastLogon", "pwdLastSet", "accountExpires", "badPasswordTime", "lastLogonTimestamp")) {
+        return Convert-ADTimestampToDateTime $value
+    }
+    if ($key -eq "userAccountControl") {
+        return "$value - $($uac_values[$value])"
+    }
+    if (-not $value -is [array]) {
+        if (Is-Base64Encoded $value) {
+            if ($key -ne "userCertificate") {
+                return Decode-Base64 $value
+            }
+        }
+    }
+    return $value
+}
 
-$computerAttributes = @(
-    "accountExpires", "adminDescription", "adminDisplayName", "ADsPath", "authOrig", "authOrigBL",
-    "canonicalName", "Class", "cn", "createTimeStamp", "delivContLength", "description",
-    "displayName", "displayNamePrintable", "distinguishedName", "dLMemRejectPerms", "dLMemRejectPermsBL",
-    "dLMemSubmitPerms", "dLMemSubmitPermsBL", "extensionAttribute", "homeMTA", "info", "isDeleted",
-    "legacyExchangeDN", "mail", "mailNickName", "managedBy", "member", "memberOf", "modifyTimeStamp",
-    "msExchExpansionServerName", "msExchHideFromAddressLists", "msExchHomeServerName",
-    "msExchRequireAuthToSendTo", "msSFU30GidNumber", "msSFU30Name", "msSFU30NisDomain",
-    "msSFU30PosixMember", "name", "Name", "nTSecurityDescriptor", "objectCategory", "objectClass",
-    "objectGUID", "objectSid", "oOFReplyToOriginator", "Parent", "primaryGroupToken", "proxyAddresses",
-    "reportToOriginator", "reportToOwner", "sAMAccountName", "telephoneNumber", "textEncodedORAddress",
-    "unauthOrig", "unauthOrigBL", "uSNChanged", "uSNCreated", "whenChanged", "whenCreated"
-)
+function Convert-LdapDataToJson($ldapObjects, $outputFile) {
+    $results = @()
+    foreach ($obj in $ldapObjects) {
+        $entry = @{}
+        foreach ($key in $obj.PropertyNames) {
+            $value = $obj.Properties[$key]
+            if ($value.Count -eq 1) {
+                $entry[$key] = Parse-KeyValue $key $value[0]
+            } else {
+                $entry[$key] = $value | ForEach-Object { Parse-KeyValue $key $_ }
+            }
+        }
+        $results += $entry
+    }
+    $results | ConvertTo-Json -Depth 10 | Out-File -FilePath $outputFile
+}
 
-$gpoAttributes = @(
-    "displayName", "cn", "name", "gPCFileSysPath", "gPCFunctionalityVersion", "gPCMachineExtensionNames",
-    "gPCUserExtensionNames", "whenCreated", "whenChanged", "uSNCreated", "uSNChanged", "objectGUID", "objectSid"
-)
-
-function Get-DirectorySearcherResults {
-    param (
-        [string]$filter,
-        [string[]]$attributes,
-        [string]$filename
+function Get-LdapData {
+    param(
+        [string]$server,
+        [string]$domain,
+        [string]$username,
+        [string]$password
     )
 
-    $directoryEntry = New-Object DirectoryServices.DirectorySearcher
-    $directoryEntry.SearchRoot = New-Object DirectoryServices.DirectorySearcher("LDAP://$ldapServer")
-    $directoryEntry.SearchRoot.AuthenticationType = [System.DirectoryServices.AuthenticationTypes]::Secure
-    $searcher = $directoryEntry
-    $searcher.Filter = $filter
-    $searcher.PropertiesToLoad.AddRange($attributes)
-    $results = $searcher.FindAll()
+    $baseDN = "LDAP://$server"
+    $credential = New-Object System.Management.Automation.PSCredential ($username, (ConvertTo-SecureString $password -AsPlainText -Force))
 
-    $output = @()
-    foreach ($result in $results) {
-        $entry = $result.Properties
-        $properties = @{}
-        foreach ($attribute in $attributes) {
-            $properties[$attribute] = if ($entry[$attribute]) { $entry[$attribute] -join "; " } else { $null }
-        }
-        $output += [PSCustomObject]$properties
+    $root = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$baseDN, "", [System.DirectoryServices.SearchScope]::Subtree)
+    $root.Properties.PropertyNames | ForEach-Object { 
+        $root.Properties[$_].Add([System.Collections.ArrayList]::new())
     }
-    $output | ConvertTo-Json -Depth 10 | Out-File (Join-Path -Path $resultsPath -ChildPath $filename)
+
+    $root.Filter = "(&(objectClass=user)(objectCategory=person))"
+    $users = $root.FindAll()
+    Convert-LdapDataToJson -ldapObjects $users -outputFile "results/USERS.json"
+
+    $root.Filter = "(&(objectClass=group))"
+    $groups = $root.FindAll()
+    Convert-LdapDataToJson -ldapObjects $groups -outputFile "results/GROUPS.json"
+
+    $root.Filter = "(&(objectClass=computer))"
+    $computers = $root.FindAll()
+    Convert-LdapDataToJson -ldapObjects $computers -outputFile "results/COMPUTERS.json"
+
+    $root.Filter = "(&(objectClass=groupPolicyContainer))"
+    $gpos = $root.FindAll()
+    Convert-LdapDataToJson -ldapObjects $gpos -outputFile "results/GPOS.json"
 }
 
-$resultsPath = "results"
-if (-not (Test-Path $resultsPath)) {
-    New-Item -Path $resultsPath -ItemType Directory | Out-Null
-}
+$server = Read-Host "Enter Server host"
+$domain = Read-Host "Enter Server domain (e.g., dc=example,dc=com)"
+$username = Read-Host "Enter username"
+$password = Read-Host "Enter password (hidden)"
 
-Get-DirectorySearcherResults -filter "(objectClass=user)" -attributes $userAttributes -filename "USERS.json"
-Get-DirectorySearcherResults -filter "(objectClass=group)" -attributes $groupAttributes -filename "GROUPS.json"
-Get-DirectorySearcherResults -filter "(objectClass=computer)" -attributes $computerAttributes -filename "COMPUTERS.json"
-Get-DirectorySearcherResults -filter "(objectClass=groupPolicyContainer)" -attributes $gpoAttributes -filename "GPOS.json"
+New-Item -Path "results" -ItemType Directory -Force | Out-Null
 
+Get-LdapData -server $server -domain $domain -username $username -password $password
 <#'''#>
