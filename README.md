@@ -44,7 +44,7 @@ Run the HTML file as a Bash script to dump domain information (requires `ldapsea
   ```
 
 ### Python
-Parse LDIF `ldapsearch` results into JSON for use in the HTML GUI:
+Parse LDIF results into JSON for use in the HTML GUI:
 - From a local file:
   ```python
   python adhunt.html <ldif_results_directory>
@@ -54,10 +54,10 @@ Parse LDIF `ldapsearch` results into JSON for use in the HTML GUI:
   curl https://adhunt.netlify.app | python
   ```
 
-Dump domain into JSON using python collector for use in the HTML GUI:
+Dump domain into LDIF using python collector:
 - From a local file:
   ```python
-  python adhunt.html <json_results_directory> --dump
+  python adhunt.html <ldif_results_directory> --dump
   ```
 - Download and execute in memory:
   ```python
