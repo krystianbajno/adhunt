@@ -233,7 +233,7 @@ iex(gc -path adhunt.html -raw)
             cursor: pointer;
         }
 
-        .userAccountControl {
+        .userAccountControl, .servicePrincipalName {
             font-weight: bold;
             color: red;
         }
@@ -313,6 +313,15 @@ iex(gc -path adhunt.html -raw)
         .panel, #controls-filters {
             display: flex;
             gap: 16px;
+        }
+
+        .list-entry {
+            margin-bottom: 16px;
+            margin-top: 8px
+        }
+
+        strong {
+            padding-right: 4px;
         }
 
     </style>
@@ -511,8 +520,8 @@ iex(gc -path adhunt.html -raw)
                 return temp.innerHTML;
             }
 
-            function sanitizeText(input) {
-                return input.replace(/&/g, "&amp;")
+            function sanitizeText(text) {
+                return text.replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;")
                     .replace(/"/g, "&quot;")
@@ -534,12 +543,15 @@ iex(gc -path adhunt.html -raw)
             function createDetailElement(key, value) {
                 const details = document.createElement('details');
                 const summary = document.createElement('summary');
-                const strongSummary = createElementWithText('strong', key, sanitizeText(key));
+                const strongSummary = createElementWithText('strong', key, key);
                 summary.appendChild(strongSummary);
                 
-                const detailsContent = createElementWithText('p', value);
+                for (const val of value) {
+                    const detailsContent = createElementWithText('p', sanitizeHtml(val), "list-entry");
+                    details.appendChild(detailsContent);
+                }
+
                 details.appendChild(summary);
-                details.appendChild(detailsContent);
                 
                 return details;
             }
@@ -547,7 +559,7 @@ iex(gc -path adhunt.html -raw)
             function createKeyValueElement(key, value) {
                 const p = document.createElement('p');
                 const strongKey = createElementWithText('strong', `${key}:`, sanitizeText(key));
-                const textValue = document.createTextNode(` ${value}`);
+                const textValue = document.createTextNode(`${sanitizeHtml(value)}`);
                 
                 p.appendChild(strongKey);
                 p.appendChild(textValue);
@@ -570,13 +582,10 @@ iex(gc -path adhunt.html -raw)
                     div.appendChild(createElementWithText('h2', sanitizeHtml(item.name)));
 
                     Object.entries(item).forEach(([key, value]) => {
-                        const sanitizedKey = sanitizeHtml(key);
-                        const sanitizedValue = sanitizeHtml(value);
-                        
-                        if (["userCertificate", "member", "memberOf", "msDS-KeyCredentialLink"].includes(key)) {
-                            div.appendChild(createDetailElement(sanitizedKey, sanitizedValue));
+                        if (["userCertificate", "member", "memberOf", "servicePrincipalName"].includes(key)) {
+                            div.appendChild(createDetailElement(key, value));
                         } else {
-                            div.appendChild(createKeyValueElement(sanitizedKey, sanitizedValue));
+                            div.appendChild(createKeyValueElement(key, value));
                         }
                     });
 
@@ -839,7 +848,7 @@ def parse_key_value(key, value):
 
     if not type(value) in (tuple, list):
         if is_base64(value):
-            if key not in ["userCertificate", "isCriticalSystemObject", "logonCount", "mDBUseDefaults"]:
+            if key not in ["userCertificate", "name", "cn", "isCriticalSystemObject", "logonCount", "mDBUseDefaults"]:
                 return decode_base64(value)
 
     return value
