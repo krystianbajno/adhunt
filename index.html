@@ -451,10 +451,10 @@ iex(gc -path adhunt.html -raw)
             function applyFilter() {
                 const query = elements.filterInput.value.toLowerCase();
                 window.location.hash = query;
-                displayedUsers = filterData(allUsers, query, ["dn", "name", "title", "l", "c", "telephoneNumber", "physicalDeliveryOfficeName", "mail", "userAccountControl", "mobile", "sAMAccountName", "userPrincipalName", "memberOf", "lastLogon", "pwdLastSet", "description"]);
-                displayedGroups = filterData(allGroups, query, ["dn", "name", "description", "displayName", "member"]);
-                displayedComputers = filterData(allComputers, query, ["dn", "name", "description", "physicalDeliveryOfficeName", "userAccountControl", "servicePrincipalName", "sAMAccountName", "userPrincipalName", "lastLogonTimestamp", "pwdLastSet"]);
-                displayedGpos = filterData(allGpos, query, ["dn", "name", "description", "displayName"]);
+                displayedUsers = filterData(allUsers, query);
+                displayedGroups = filterData(allGroups, query);
+                displayedComputers = filterData(allComputers, query);
+                displayedGpos = filterData(allGpos, query);
 
                 userLoadIndex = 0;
                 groupLoadIndex = 0;
@@ -474,8 +474,8 @@ iex(gc -path adhunt.html -raw)
                 displayAndLoadMoreItems(elements.outputGpos, displayedGpos, "gpo", gpoLoadIndex);
             }
 
-            function filterData(data, query, keys) {
-                return data.filter(item => keys.some(key => item[key] && item[key].toString().toLowerCase().includes(query)));
+            function filterData(data, query) {
+                return data.filter(item => Object.keys(item).some(key => item[key] && item[key].toString().toLowerCase().includes(query)));
             }
 
             function sanitizeHtml(html) {
