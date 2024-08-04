@@ -765,12 +765,13 @@ def parse_key_value(key, value):
     
     if key in ["userAccountControl"]:
         return f"{value} - {uac_values.get(int(value))}"
-    
-    base64val = value[2:]
 
-    if is_base64(base64val):
-        if key not in ["userCertificate"]:
-            return decode_base64(base64val)
+    if not type(value) in (tuple, list):
+        base64val = value[2:]
+
+        if is_base64(base64val):
+            if key not in ["userCertificate"]:
+                return decode_base64(base64val)
         
     return value
 
@@ -808,9 +809,9 @@ def main():
                     key, value = map(str.strip, line.split(':', 1))
                     if key in ["memberOf", "dsCorePropagationData", "member", "objectClass", "servicePrincipalName", "userCertificate"]:
                         if not entry.get(key):
-                            entry[key] = value
-                        else: 
-                            entry[key] = entry[key] + "<br>" + value
+                            entry[key] = []
+
+                        entry[key].append(value)
                     else:
                         entry[key] = value
             if entry:
