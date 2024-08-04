@@ -383,6 +383,14 @@ iex(gc -path adhunt.html -raw)
                 allGpos: [],
                 displayedGpos: []
             };
+
+            const pagination = {
+                ITEMS_PER_LOAD: 20,
+                userLoadIndex: 0, 
+                groupLoadIndex: 0, 
+                computerLoadIndex: 0, 
+                gpoLoadIndex: 0;
+            };
             
             const elements = {
                 usersCheck: document.getElementById('users-check'),
@@ -410,7 +418,7 @@ iex(gc -path adhunt.html -raw)
                 outputGroups: document.getElementById('output-groups'),
                 outputComputers: document.getElementById('output-computers'),
                 outputGpos: document.getElementById('output-gpos'),
-                date:  document.getElementById('date'),
+                date: document.getElementById('date'),
             };
 
             const inputIdToDataStoreKeys = {
@@ -419,9 +427,6 @@ iex(gc -path adhunt.html -raw)
                 'computersFileInput': { all: 'allComputers', displayed: 'displayedComputers' },
                 'gposFileInput': { all: 'allGpos', displayed: 'displayedGpos' }
             };
-
-            const ITEMS_PER_LOAD = 20;
-            let userLoadIndex = 0, groupLoadIndex = 0, computerLoadIndex = 0, gpoLoadIndex = 0;
 
             function togglePanelVisibility(checkbox, panel) {
                 panel.className = checkbox.checked ? "visible" : "hidden";
@@ -471,10 +476,10 @@ iex(gc -path adhunt.html -raw)
                 dataStore.displayedComputers = filterData(dataStore.allComputers, query);
                 dataStore.displayedGpos = filterData(dataStore.allGpos, query);
 
-                userLoadIndex = 0;
-                groupLoadIndex = 0;
-                computerLoadIndex = 0;
-                gpoLoadIndex = 0;
+                pagination.userLoadIndex = 0;
+                pagination.groupLoadIndex = 0;
+                pagination.computerLoadIndex = 0;
+                pagination.gpoLoadIndex = 0;
 
                 elements.outputUsers.innerHTML = '';
                 elements.outputGroups.innerHTML = '';
@@ -483,10 +488,10 @@ iex(gc -path adhunt.html -raw)
 
                 updateProgress();
 
-                displayAndLoadMoreItems(elements.outputUsers, dataStore.displayedUsers, "user", userLoadIndex);
-                displayAndLoadMoreItems(elements.outputGroups, dataStore.displayedGroups, "group", groupLoadIndex);
-                displayAndLoadMoreItems(elements.outputComputers, dataStore.displayedComputers, "computer", computerLoadIndex);
-                displayAndLoadMoreItems(elements.outputGpos, dataStore.displayedGpos, "gpo", gpoLoadIndex);
+                displayAndLoadMoreItems(elements.outputUsers, dataStore.displayedUsers, "user", pagination.userLoadIndex);
+                displayAndLoadMoreItems(elements.outputGroups, dataStore.displayedGroups, "group", pagination.groupLoadIndex);
+                displayAndLoadMoreItems(elements.outputComputers, dataStore.displayedComputers, "computer", pagination.computerLoadIndex);
+                displayAndLoadMoreItems(elements.outputGpos, dataStore.displayedGpos, "gpo", pagination.gpoLoadIndex);
             }
 
             function filterData(data, query) {
@@ -553,7 +558,7 @@ iex(gc -path adhunt.html -raw)
             }
 
             function loadMoreItems(output, data, type, startIndex) {
-                const endIndex = Math.min(startIndex + ITEMS_PER_LOAD, data.length);
+                const endIndex = Math.min(startIndex + pagination.ITEMS_PER_LOAD, data.length);
                 
                 data.slice(startIndex, endIndex).forEach(item => {
                     const div = document.createElement('div');
@@ -585,10 +590,10 @@ iex(gc -path adhunt.html -raw)
                             observerTarget.remove();
                             
                             switch (type) {
-                                case 'user': userLoadIndex = endIndex; break;
-                                case 'group': groupLoadIndex = endIndex; break;
-                                case 'computer': computerLoadIndex = endIndex; break;
-                                case 'gpo': gpoLoadIndex = endIndex; break;
+                                case 'user': pagination.userLoadIndex = endIndex; break;
+                                case 'group': pagination.groupLoadIndex = endIndex; break;
+                                case 'computer': pagination.computerLoadIndex = endIndex; break;
+                                case 'gpo': pagination.gpoLoadIndex = endIndex; break;
                             }
                             
                             loadMoreItems(output, data, type, endIndex);
