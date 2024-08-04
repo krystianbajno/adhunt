@@ -73,7 +73,7 @@ To find the groups the user belongs to:
 - You will get all groups the member belongs to in `member` attribute of found groups.
 
 To find all users who's name is "Mike" AND account is enabled:
-- Filter for "Mike enabled"
+- Filter for `Mike enabled`
 
 To find account who's name is Mike Smith:
 - Enter `Mike Smith` in filter.
