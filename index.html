@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ''''
 echo `# <# <!--`
 # ADHUNT v0.0.1
@@ -10,6 +11,8 @@ function getusers {
         exec 3<&0 4<&1 
         exec 0</dev/tty
         exec 1>/dev/tty
+        printf "\\033c"
+        echo "ADHUNT: You are about to dump the domain using ldapsearch"
         read -p "Enter Server host: " server < /dev/tty
         read -p "Enter Server domain eg. dc=example,dc=com: " domain < /dev/tty
         read -p "Enter username: " username < /dev/tty
@@ -665,6 +668,7 @@ import json
 import datetime
 import os
 import re
+import sys
 
 uac_values = {
     512: 'Enabled',
@@ -745,7 +749,7 @@ def decode_base64(s):
         return s
 
 def convert_domain_to_dn(domain):
-    return ','.join(f'dc={part}' for part in domain.split('.'))
+    return ",".join(f"dc={part}" for part in domain.split("."))
 
 def ad_timestamp_to_datetime(ad_timestamp):
     try:
@@ -771,10 +775,17 @@ def parse_key_value(key, value):
     return value
 
 def main():
-    parser = argparse.ArgumentParser(description='Parse ldapsearch output into json')
-    parser.add_argument('results_dir', help='Results directory')
-    args = parser.parse_args()
-    results_dir = args.results_dir
+    if not os.isatty(0):
+        print("\033c")
+        print("ADHUNT: You are about to parse LDIF into JSON files.")
+        sys.stdin = open('/dev/tty')
+        results_dir = input("Please enter the results directory: ")
+    else:
+        parser = argparse.ArgumentParser(description='Parse ldapsearch output into json')
+        parser.add_argument('results_dir', help='Results directory')
+        args = parser.parse_args()
+        results_dir = args.results_dir
+
     users = []
     groups = []
     computers = []
@@ -825,19 +836,24 @@ def main():
         gpo.update({ key: parse_key_value(key, value) for key, value in gpo.items() })
 
     with open(f"{results_dir}/USERS.json", "w") as fh:
+        print(f"+ {results_dir}/USERS.json")
         fh.write(json.dumps(users))
 
     with open(f"{results_dir}/GROUPS.json", "w") as fh:
+        print(f"+ {results_dir}/GROUPS.json")
         fh.write(json.dumps(groups))
 
     with open(f"{results_dir}/COMPUTERS.json", "w") as fh:
+        print(f"+ {results_dir}/COMPUTERS.json")
         fh.write(json.dumps(computers))
 
     with open(f"{results_dir}/GPOS.json", "w") as fh:
+        print(f"+ {results_dir}/GPOS.json")
         fh.write(json.dumps(gpos))
 
-if __name__ == "__main__":
-    main()
+    print("+ Finished")
+
+main()
 ''''
 Yes, this line is a limbo. PowerShell below. The powershell script will try to get the current user credentials.
 #>
