@@ -3,13 +3,13 @@
 **ADHUNT** is a versatile polyglot file (Bash, PowerShell, Python, HTML) for gathering domain information. It operates seamlessly across different environments without the need for installation. You can either save it directly from the website or execute it in-memory.
 
 ### Collectors:
-
+- **Python**: `ldap3` (todo)
 - **PowerShell**: `New-Object DirectoryServices.DirectorySearcher`
 - **Bash**: `ldapsearch`
 
 ### Converters:
-
-- **Python**: Converts `ldapsearch` LDIF results into JSON.
+- **Python**: Converts `ldapsearch` LDIF results into ADHUNT JSON.
+- **Python**: Converts BloodHound JSON into ADHUNT JSON. (todo)
 
 ### GUI:
 
