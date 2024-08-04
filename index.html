@@ -727,9 +727,7 @@ uac_values = {
     83890176: 'Enabled - Server Trust Account - Trusted For Delegation - (Read-Only Domain Controller (RODC))'
 }
 
-def is_base64(value):
-    s = value[2:]
-
+def is_base64(s):
     if len(s) % 4 != 0:
         return False
     
@@ -743,14 +741,12 @@ def is_base64(value):
     except Exception:
         return False
 
-def decode_base64(value):
-    s = value[2:]
-
+def decode_base64(s):
     try:
         decoded_bytes = base64.b64decode(s)
         return decoded_bytes.decode('utf-8')
     except Exception as e:
-        return value
+        return s
 
 def convert_domain_to_dn(domain):
     return ",".join(f"dc={part}" for part in domain.split("."))
@@ -809,6 +805,7 @@ def main():
             for line in block.split('\n'):
                 if ':' in line:
                     key, value = map(str.strip, line.split(':', 1))
+                    value = value.strip(": ")
 
                     if key in ["memberOf", "dsCorePropagationData", "member", "objectClass", "servicePrincipalName", "userCertificate"]:
                         if not entry.get(key):
