@@ -484,6 +484,19 @@ iex(gc -path adhunt.html -raw)
                 return temp.innerHTML;
             }
 
+            function sanitizeText(input) {
+                return input.replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;")
+                    .replace(/`/g, "&#x60;")
+                    .replace(/\(/g, "&#40;")
+                    .replace(/\)/g, "&#41;")
+                    .replace(/\//g, "&#x2F;")
+                    .replace(/\\/g, "&#x5C;");
+            }
+
             function displayAndLoadMoreItems(output, data, type, startIndex) {
                 if (data.length === 0) {
                     output.textContent = `No ${type}s found. Load a file or refine your filters.`;
@@ -502,9 +515,9 @@ iex(gc -path adhunt.html -raw)
                     div.innerHTML = `<h2>${sanitizeHtml(item.name)}</h2>`;
                     Object.entries(item).forEach(([key, value]) => {
                         if (["userCertificate", "member", "memberOf", "msDS-KeyCredentialLink"].includes(key)) {
-                            div.innerHTML += `<p><details><summary><strong>${sanitizeHtml(key)}</strong></summary><p>${sanitizeHtml(value)}</p></details></p>`;
+                            div.innerHTML += `<p><details><summary><strong class=${sanitizeText(key)}>${sanitizeHtml(key)}</strong></summary><p>${sanitizeHtml(value)}</p></details></p>`;
                         } else {
-                            div.innerHTML += `<p><strong>${sanitizeHtml(key)}:</strong> ${sanitizeHtml(value)}</p>`;
+                            div.innerHTML += `<p><strong class=${sanitizeText(key)}>${sanitizeHtml(key)}:</strong> ${sanitizeHtml(value)}</p>`;
                         }
                     });
                     output.appendChild(div);
