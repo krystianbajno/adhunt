@@ -62,7 +62,8 @@ Run the HTML file in a browser to display and filter results:
 4. Filter entities and save results as a .csv file.
 
 For example, to find all managers:
-- Filter for "Managers" and export the list as a .csv file.
+- Filter for "Managers" - you will get all manager related entries.
+- You can export the seperate lists as .csv files, it is useful when searching for emails to be parsed.
 
 To find the groups the user belongs to:
 - Upload users.json and groups.json.
