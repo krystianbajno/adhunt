@@ -64,7 +64,7 @@ Run the HTML file in a browser to display and filter results:
 ### Examples
 To find all managers:
 - Filter for "Managers" - you will get all manager related entries.
-- You can export the seperate lists as .csv files, it is useful when searching for emails to be parsed.
+- You can export the seperate lists as .csv files, it is useful when searching for emails.
 
 To find the groups the user belongs to:
 - Upload users.json and groups.json.
