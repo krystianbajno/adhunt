@@ -1,6 +1,6 @@
 # ADHUNT
 
-**ADHUNT** is a versatile polyglot file (Bash, PowerShell, Python, HTML) for gathering domain information. It works everywhere without requiring installation. You can open the website and hit save as or you can run it in memory
+**ADHUNT** is a versatile polyglot file (Bash, PowerShell, Python, HTML) for gathering domain information. It operates seamlessly across different environments without the need for installation. You can either save it directly from the website or execute it in-memory.
 
 ### Collectors:
 
