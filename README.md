@@ -54,6 +54,16 @@ Parse LDIF `ldapsearch` results into JSON for use in the HTML GUI:
   curl https://adhunt.netlify.app | python
   ```
 
+Dump domain into JSON using python collector for use in the HTML GUI:
+- From a local file:
+  ```python
+  python adhunt.html <json_results_directory> --dump
+  ```
+- Download and execute in memory:
+  ```python
+  curl https://adhunt.netlify.app | python
+  ```
+
 ### Browser
 Run the HTML file in a browser to display and filter results:
 1. Upload JSON files into ADHUNT.
