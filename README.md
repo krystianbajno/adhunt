@@ -61,7 +61,8 @@ Run the HTML file in a browser to display and filter results:
 3. Query and display all Active Directory attributes.
 4. Filter entities and save results as a .csv file.
 
-For example, to find all managers:
+### Examples
+To find all managers:
 - Filter for "Managers" - you will get all manager related entries.
 - You can export the seperate lists as .csv files, it is useful when searching for emails to be parsed.
 
@@ -70,6 +71,13 @@ To find the groups the user belongs to:
 - Filter for username in the filter input
 - You will get the user, his groups are in `memberOf`.
 - You will get all groups the member belongs to in `member` attribute of found groups.
+
+To find account who's name is Mike Smith:
+- Enter `Mike Smith` in filter.
+
+To find account who's name is Mike Smith AND is an administrator:
+- Enter `Mike admin` in filter.
+- Enter `Mike Smith admin` in filter.
 
 To find domain admin:
 - Filter for `domain admin`.

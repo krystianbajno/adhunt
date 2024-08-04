@@ -166,7 +166,7 @@ iex(gc -path adhunt.html -raw)
         }
 
         body {
-            font-family: Consolas, 'Courier New', monospace;
+            font-family: monospace;
             font-size: 1px;
             transition: 1s;
         }
@@ -494,7 +494,15 @@ iex(gc -path adhunt.html -raw)
             }
 
             function filterData(data, query) {
-                return data.filter(item => Object.keys(item).some(key => item[key] && item[key].toString().toLowerCase().includes(query)));
+                const terms = query.toLowerCase().split(/\s+/);
+            
+                return data.filter(item => 
+                    terms.every(term => 
+                        Object.keys(item).some(key => 
+                            item[key] && item[key].toString().toLowerCase().includes(term)
+                        )
+                    )
+                );
             }
 
             function sanitizeHtml(html) {
