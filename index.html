@@ -644,10 +644,10 @@ iex(gc -path adhunt.html -raw)
                 document.body.removeChild(a);
             }
 
-            elements.saveButtonUsers.addEventListener('click', () => downloadCSV(displayedUsers, 'users.csv'));
-            elements.saveButtonGroups.addEventListener('click', () => downloadCSV(displayedGroups, 'groups.csv'));
-            elements.saveButtonComputers.addEventListener('click', () => downloadCSV(displayedComputers, 'computers.csv'));
-            elements.saveButtonGpos.addEventListener('click', () => downloadCSV(displayedGpos, 'computers.csv'));
+            elements.saveButtonUsers.addEventListener('click', () => downloadCSV(dataStore.displayedUsers, 'users.csv'));
+            elements.saveButtonGroups.addEventListener('click', () => downloadCSV(dataStore.displayedGroups, 'groups.csv'));
+            elements.saveButtonComputers.addEventListener('click', () => downloadCSV(dataStore.displayedComputers, 'computers.csv'));
+            elements.saveButtonGpos.addEventListener('click', () => downloadCSV(dataStore.displayedGpos, 'computers.csv'));
 
             elements.usersFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputUsers));
             elements.groupsFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputGroups));
