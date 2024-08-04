@@ -848,7 +848,7 @@ def parse_key_value(key, value):
 
     if not type(value) in (tuple, list):
         if is_base64(value):
-            if key not in ["userCertificate", "name", "cn", "isCriticalSystemObject", "logonCount", "mDBUseDefaults"]:
+            if key not in ["userCertificate", "cn", "isCriticalSystemObject", "logonCount", "mDBUseDefaults"]:
                 return decode_base64(value)
 
     return value
