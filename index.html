@@ -676,6 +676,7 @@ import json
 import datetime
 import os
 import re
+import struct
 import sys
 
 uac_values = {
@@ -773,6 +774,10 @@ def parse_key_value(key, value):
     
     if key in ["userAccountControl"]:
         return f"{value} - {uac_values.get(int(value))}"
+    
+    if key in ["objectSid"]:
+        sid = base64.b64decode(value)
+        return f"{convert_sid(sid)}"
 
     if not type(value) in (tuple, list):
         if is_base64(value):
@@ -780,6 +785,30 @@ def parse_key_value(key, value):
                 return decode_base64(value)
 
     return value
+
+
+def convert_sid(sid):
+    if isinstance(sid, str):
+        sid = sid.encode()
+
+    if sys.version_info.major < 3:
+        revision = ord(sid[0])
+    else:
+        revision = sid[0]
+
+    if sys.version_info.major < 3:
+        number_of_sub_ids = ord(sid[1])
+    else:
+        number_of_sub_ids = sid[1]
+
+    iav = struct.unpack('>Q', b'\x00\x00' + sid[2:8])[0]
+    sub_ids = [struct.unpack('<I', sid[8 + 4 * i:12 + 4 * i])[0]
+               for i in range(number_of_sub_ids)]
+
+    return 'S-{0}-{1}-{2}'.format(revision, iav, '-'.join([
+        str(sub_id)
+        for sub_id in sub_ids
+    ]))
 
 # todo 
 def dump_domain(results_dir=None):
