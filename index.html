@@ -440,17 +440,12 @@ iex(gc -path adhunt.html -raw)
                     const reader = new FileReader();
                     
                     reader.onload = (e) => {
-                        try {
-                            const data = JSON.parse(e.target.result);
-                            const dataStoreKeys = inputIdToDataStoreKeys[event.target.id];
+                        const data = JSON.parse(e.target.result);
+                        const dataStoreKeys = inputIdToDataStoreKeys[event.target.id];
 
-                            dataStore[dataStoreKeys.all] = data;
-                            dataStore[dataStoreKeys.displayed] = [...data];
-                            applyFilter();
-                      
-                        } catch (error) {
-                            showError(output, `Error loading JSON: ${error.message}`);
-                        }
+                        dataStore[dataStoreKeys.all] = data;
+                        dataStore[dataStoreKeys.displayed] = [...data];
+                        applyFilter();
                     };
                     
                     reader.onerror = () => showError(output, 'Error loading file.');
