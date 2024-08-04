@@ -781,88 +781,97 @@ def parse_key_value(key, value):
 
     return value
 
-def main():
-    if not os.isatty(0):
-        print("\033c")
-        print("ADHUNT: You are about to parse LDIF into JSON files.")
-        sys.stdin = open('/dev/tty')
-        results_dir = input("Please enter the results directory: ")
-    else:
-        parser = argparse.ArgumentParser(description='Parse ldapsearch output into json')
-        parser.add_argument('results_dir', help='Results directory')
-        args = parser.parse_args()
-        results_dir = args.results_dir
+# todo 
+def dump_domain(results_dir=None):
+    print("DUMP")
 
-    users = []
-    groups = []
-    computers = []
-    gpos = []
-    
-    files = [f"{results_dir}/"+f for f in os.listdir(results_dir) if "ldif" in f]
+def parse_ldif(results_dir):
+    entries = {
+        "USERS.ldif": [],
+        "COMPUTERS.ldif": [],
+        "GROUPS.ldif": [],
+        "GPOS.ldif": []
+    }
 
-    for filename in files:
+    for filename in os.listdir(results_dir):
+        if "ldif" not in filename:
+            continue
+        
+        file_path = os.path.join(results_dir, filename)
         try:
-            with open(filename, "r") as file:
-                lines = file.read().strip().split('\n\n')
+            with open(file_path, "r") as file:
+                blocks = file.read().strip().split('\n\n')
         except FileNotFoundError:
             print(f"[!] Specified file {filename} was not found")
-            return
-                
-        for block in lines:
+            continue
+        
+        for block in blocks:
             entry = {}
             for line in block.split('\n'):
                 if ':' in line:
                     key, value = map(str.strip, line.split(':', 1))
                     value = value.strip(": ")
-
                     if key in ["memberOf", "dsCorePropagationData", "member", "objectClass", "servicePrincipalName", "userCertificate"]:
-                        if not entry.get(key):
-                            entry[key] = []
-
-                        entry[key].append(value)
+                        entry.setdefault(key, []).append(value)
                     else:
                         entry[key] = value
-            if entry:
-                if "USERS.ldif" in filename:
-                    users.append(entry)
-                if "COMPUTERS.ldif" in filename:
-                    computers.append(entry)
-                if "GROUPS.ldif" in filename:
-                    groups.append(entry)
-                if "GPOS.ldif" in filename:
-                    gpos.append(entry)
+            
+            if entry and any(tag in filename for tag in entries):
+                for tag in entries:
+                    if tag in filename:
+                        entries[tag].append(entry)
+                        break
 
-    for user in users:
-        user.update({ key: parse_key_value(key, value) for key, value in user.items() })
+    for entry_list in entries.values():
+        for entry in entry_list:
+            entry.update({key: parse_key_value(key, value) for key, value in entry.items()})
 
-    for group in groups:
-        group.update({ key: parse_key_value(key, value) for key, value in group.items() })
-
-    for computer in computers:
-        computer.update({ key: parse_key_value(key, value) for key, value in computer.items() })
-    
-    for gpo in gpos:
-        gpo.update({ key: parse_key_value(key, value) for key, value in gpo.items() })
-
-    with open(f"{results_dir}/USERS.json", "w") as fh:
-        print(f"+ {results_dir}/USERS.json")
-        fh.write(json.dumps(users))
-
-    with open(f"{results_dir}/GROUPS.json", "w") as fh:
-        print(f"+ {results_dir}/GROUPS.json")
-        fh.write(json.dumps(groups))
-
-    with open(f"{results_dir}/COMPUTERS.json", "w") as fh:
-        print(f"+ {results_dir}/COMPUTERS.json")
-        fh.write(json.dumps(computers))
-
-    with open(f"{results_dir}/GPOS.json", "w") as fh:
-        print(f"+ {results_dir}/GPOS.json")
-        fh.write(json.dumps(gpos))
+    for key, entry_list in entries.items():
+        json_file = os.path.join(results_dir, key.replace('ldif', 'json').upper())
+        
+        with open(json_file, "w") as fh:
+            print(f"+ {json_file}")
+            json.dump(entry_list, fh, indent=4)
 
     print("+ Finished")
+    
+def interactive_mode():
+    print("\033c", end="")
+    sys.stdin = open('/dev/tty') 
 
-main()
+    while True:
+        choice = input("ADHUNT: Do you want to dump the domain or parse LDIF? [ld]if/[du]mp: ").strip().lower()
+        if choice in "dump":
+            dump_domain()
+            return
+        elif choice in "ldif":
+            print("ADHUNT: You are about to parse LDIF into JSON files.")
+            results_dir = input("Please enter the results directory: ")
+            parse_ldif(results_dir=results_dir)
+            return
+        else:
+            print("Invalid choice. Please enter 'ldif' or 'dump'.")
+
+def command_line_mode():
+    parser = argparse.ArgumentParser(description='Parse ldapsearch output into JSON.')
+    parser.add_argument('results_dir', help='Results directory')
+    parser.add_argument("--dump", action="store_true", default=False, help='Dump domain data')
+    args = parser.parse_args()
+
+    if args.dump:
+        dump_domain(results_dir=args.results_dir)
+    else:
+        parse_ldif(results_dir=args.results_dir)
+
+def main():
+    if not os.isatty(0):
+        interactive_mode()
+    else:
+        command_line_mode()
+
+if __name__ == "__main__":
+    main()
+    
 ''''
 Yes, this line is a limbo. PowerShell below. The powershell script will try to get the current user credentials.
 #>
