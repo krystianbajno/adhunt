@@ -12,7 +12,7 @@
 - **Python**: Converts BloodHound JSON into ADHUNT JSON. (todo)
 
 ### Extractors:
-- **Python**: HTTP Webhook upload server + client with AES-GCM 256 bit encryption and zip compression. (todo)
+- **Python**: HTTP Webhook upload server + client with AES-GCM 256 bit encryption and zip compression. Upload from browser, and upload during domain dump without touching disk. (todo)
 
 ### GUI:
 
