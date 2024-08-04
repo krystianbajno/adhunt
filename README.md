@@ -12,8 +12,8 @@
 - **Python**: Converts BloodHound JSON into ADHUNT JSON. (todo)
 
 ### Extractors:
-- **Python**: An HTTP Webhook upload client (server implementation available at https://github.com/krystianbajno/UPLINK) that uses AES-GCM 256-bit encryption and zip compression for domain dumps without writing to disk. (todo)
-- **PowerShell**: An HTTP Webhook upload client that uses AES-GCM 256-bit encryption and zip compression for domain dumps without writing to disk.(todo)
+- **Python**: An HTTP Webhook upload client (server implementation available at https://github.com/krystianbajno/UPLINK) that uses AES-GCM 256-bit encryption and zip compression during domain dumping without writing to disk. (todo)
+- **PowerShell**: An HTTP Webhook upload client that uses AES-GCM 256-bit encryption and zip compression during domain dumping without writing to disk.(todo)
 
 ### GUI:
 
