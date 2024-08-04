@@ -22,7 +22,7 @@
 ## Usage Scenarios:
 
 ### PowerShell
-Run the HTML file as a PowerShell script to dump domain information (users, groups, computers, and group policies):
+**Run the HTML file as a PowerShell script to dump domain information (users, groups, computers, and group policies):**
 - From a local file:
   ```powershell
   iex(gc -path adhunt.html -raw)
@@ -33,7 +33,7 @@ Run the HTML file as a PowerShell script to dump domain information (users, grou
   ```
 
 ### Bash
-Run the HTML file as a Bash script to dump domain information (requires `ldapsearch`):
+**Run the HTML file as a Bash script to dump domain information (requires `ldapsearch`):**
 - Provide credentials:
   ```bash
   bash adhunt.html <server> <domain> <user> <password>
@@ -48,7 +48,7 @@ Run the HTML file as a Bash script to dump domain information (requires `ldapsea
   ```
 
 ### Python
-Dump domain into LDIF using python collector:
+**Dump domain into LDIF using python collector:**
 - From a local file:
   ```python
   python adhunt.html <ldif_results_directory> --dump
@@ -58,7 +58,7 @@ Dump domain into LDIF using python collector:
   curl https://adhunt.netlify.app | python
   ```
   
-Parse LDIF results into JSON for use in the HTML GUI:
+**Parse LDIF results into JSON for use in the HTML GUI:**
 - From a local file:
   ```python
   python adhunt.html <ldif_results_directory>
@@ -68,7 +68,7 @@ Parse LDIF results into JSON for use in the HTML GUI:
   curl https://adhunt.netlify.app | python
   ```
 
-Convert BloodHound results into ADHUNT JSON format:
+**Convert BloodHound results into ADHUNT JSON format:**
 - From a local file:
   ```python
   python adhunt.html <bloodhound_results_directory> --bloodhound
@@ -79,12 +79,12 @@ Convert BloodHound results into ADHUNT JSON format:
   curl https://adhunt.netlify.app | python
   ```
 
-In order to convert ADHUNT LDIF results into BloodHound, use:
+**In order to convert ADHUNT LDIF results into BloodHound, use:**
 - https://github.com/SySS-Research/ldif2bloodhound
 - https://github.com/gquere/bloodhound_linux
 
 ### Browser
-Run the HTML file in a browser to display and filter results:
+**Run the HTML file in a browser to display and filter results:**
 1. Upload JSON files into ADHUNT.
 2. Use the global filter to search for specific entries.
 3. Query and display all Active Directory attributes.
