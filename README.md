@@ -63,7 +63,16 @@ Run the HTML file in a browser to display and filter results:
 
 For example, to find all managers:
 - Filter for "Managers" and export the list as a .csv file.
-- Useful for targeted tasks like sending phishing emails.
+
+To find the groups the user belongs to:
+- Upload users.json and groups.json.
+- Filter for username in the filter input
+- You will get the user, his groups are in `memberOf`.
+- You will get all groups the member belongs to in `member` attribute of found groups.
+
+To find domain admin:
+- Filter for `domain admin`.
+- You will get all Domain Administrators in Users.
 
 ## Installation
 
