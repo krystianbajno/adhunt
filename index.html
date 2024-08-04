@@ -808,19 +808,17 @@ def parse_ldif(results_dir):
         for block in blocks:
             entry = {}
             for line in block.split('\n'):
-                if ':' in line:
-                    key, value = map(str.strip, line.split(':', 1))
-                    value = value.strip(": ")
-                    if key in ["memberOf", "dsCorePropagationData", "member", "objectClass", "servicePrincipalName", "userCertificate"]:
-                        entry.setdefault(key, []).append(value)
-                    else:
-                        entry[key] = value
+                key, value = map(str.strip, line.split(':', 1))
+                value = value.strip(": ")
+                if key in ["memberOf", "dsCorePropagationData", "member", "objectClass", "servicePrincipalName", "userCertificate"]:
+                    entry.setdefault(key, []).append(value)
+                else:
+                    entry[key] = value
             
-            if entry and any(tag in filename for tag in entries):
-                for tag in entries:
-                    if tag in filename:
-                        entries[tag].append(entry)
-                        break
+            for tag in entries:
+                if tag in filename:
+                    entries[tag].append(entry)
+                    break
 
     for entry_list in entries.values():
         for entry in entry_list:
