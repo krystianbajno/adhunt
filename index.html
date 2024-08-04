@@ -376,6 +376,9 @@ iex(gc -path adhunt.html -raw)
             let allUsers = [], allGroups = [], allComputers = [], allGpos = [];
             let displayedUsers = [], displayedGroups = [], displayedComputers = [];
 
+            const ITEMS_PER_LOAD = 20;
+            let userLoadIndex = 0, groupLoadIndex = 0, computerLoadIndex = 0, gpoLoadIndex = 0;
+
             document.getElementById('date').textContent = new Date().toLocaleString();
 
             const elements = {
@@ -438,42 +441,101 @@ iex(gc -path adhunt.html -raw)
                 }
             }
 
+            function updateProgress() {
+                elements.usersProgress.textContent = `Showing ${displayedUsers.length} of ${allUsers.length} users`;
+                elements.groupsProgress.textContent = `Showing ${displayedGroups.length} of ${allGroups.length} groups`;
+                elements.computersProgress.textContent = `Showing ${displayedComputers.length} of ${allComputers.length} computers`;
+                elements.gposProgress.textContent = `Showing ${displayedGpos.length} of ${allGpos.length} GPOs`;
+            }
+
             function applyFilter() {
                 const query = elements.filterInput.value.toLowerCase();
-                window.location.hash = query
+                window.location.hash = query;
                 displayedUsers = filterData(allUsers, query, ["dn", "name", "title", "l", "c", "telephoneNumber", "physicalDeliveryOfficeName", "mail", "userAccountControl", "mobile", "sAMAccountName", "userPrincipalName", "memberOf", "lastLogon", "pwdLastSet", "description"]);
                 displayedGroups = filterData(allGroups, query, ["dn", "name", "description", "displayName", "member"]);
                 displayedComputers = filterData(allComputers, query, ["dn", "name", "description", "physicalDeliveryOfficeName", "userAccountControl", "servicePrincipalName", "sAMAccountName", "userPrincipalName", "lastLogonTimestamp", "pwdLastSet"]);
                 displayedGpos = filterData(allGpos, query, ["dn", "name", "description", "displayName"]);
 
-                displayData(elements.outputUsers, displayedUsers, "user");
-                displayData(elements.outputGroups, displayedGroups, "group");
-                displayData(elements.outputComputers, displayedComputers, "computer");
-                displayData(elements.outputGpos, displayedGpos, "gpo");
+                userLoadIndex = 0;
+                groupLoadIndex = 0;
+                computerLoadIndex = 0;
+                gpoLoadIndex = 0;
+
+                elements.outputUsers.innerHTML = '';
+                elements.outputGroups.innerHTML = '';
+                elements.outputComputers.innerHTML = '';
+                elements.outputGpos.innerHTML = '';
+
+                updateProgress();
+
+                displayAndLoadMoreItems(elements.outputUsers, displayedUsers, "user", userLoadIndex);
+                displayAndLoadMoreItems(elements.outputGroups, displayedGroups, "group", groupLoadIndex);
+                displayAndLoadMoreItems(elements.outputComputers, displayedComputers, "computer", computerLoadIndex);
+                displayAndLoadMoreItems(elements.outputGpos, displayedGpos, "gpo", gpoLoadIndex);
             }
 
             function filterData(data, query, keys) {
                 return data.filter(item => keys.some(key => item[key] && item[key].toString().toLowerCase().includes(query)));
             }
 
-            function displayData(output, data, type) {
-                output.innerHTML = '';
-                if (data.length) {
-                    data.forEach(item => {
-                        const div = document.createElement('div');
-                        div.className = type;
-                        div.innerHTML = `<h2>${item.name}</h2>`;
-                        Object.entries(item).forEach(([key, value]) => {
-                            if (["userCertificate", "memberOf", "msDS-KeyCredentialLink"].includes(key)) {
-                                div.innerHTML += `<p><details closed><summary><strong>${key}</strong></summary><p>${value}</p></details></p>`;
-                            } else {
-                                div.innerHTML += `<p><strong>${key}:</strong> ${value}</p>`;
-                            }
-                        });
-                        output.appendChild(div);
-                    });
-                } else {
+            function sanitizeHtml(html) {
+                const temp = document.createElement('div');
+                temp.textContent = html;
+                return temp.innerHTML;
+            }
+
+            function displayAndLoadMoreItems(output, data, type, startIndex) {
+                if (data.length === 0) {
                     output.textContent = `No ${type}s found. Load a file or refine your filters.`;
+                    return;
+                }
+
+                loadMoreItems(output, data, type, startIndex);
+            }
+
+            function loadMoreItems(output, data, type, startIndex) {
+                const endIndex = Math.min(startIndex + ITEMS_PER_LOAD, data.length);
+                for (let i = startIndex; i < endIndex; i++) {
+                    const item = data[i];
+                    const div = document.createElement('div');
+                    div.className = type;
+                    div.innerHTML = `<h2>${sanitizeHtml(item.name)}</h2>`;
+                    Object.entries(item).forEach(([key, value]) => {
+                        if (["userCertificate", "memberOf", "msDS-KeyCredentialLink"].includes(key)) {
+                            div.innerHTML += `<p><details><summary><strong>${sanitizeHtml(key)}</strong></summary><p>${sanitizeHtml(value)}</p></details></p>`;
+                        } else {
+                            div.innerHTML += `<p><strong>${sanitizeHtml(key)}:</strong> ${sanitizeHtml(value)}</p>`;
+                        }
+                    });
+                    output.appendChild(div);
+                }
+
+                if (endIndex < data.length) {
+                    const observerTarget = document.createElement('div');
+                    observerTarget.className = 'observer-target';
+                    output.appendChild(observerTarget);
+                    const observer = new IntersectionObserver((entries) => {
+                        if (entries[0].isIntersecting) {
+                            observer.unobserve(observerTarget);
+                            observerTarget.remove();
+                            switch (type) {
+                                case 'user':
+                                    userLoadIndex = endIndex;
+                                    break;
+                                case 'group':
+                                    groupLoadIndex = endIndex;
+                                    break;
+                                case 'computer':
+                                    computerLoadIndex = endIndex;
+                                    break;
+                                case 'gpo':
+                                    gpoLoadIndex = endIndex;
+                                    break;
+                            }
+                            loadMoreItems(output, data, type, endIndex);
+                        }
+                    }, { threshold: 0.1 });
+                    observer.observe(observerTarget);
                 }
             }
 
