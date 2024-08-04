@@ -44,6 +44,16 @@ Run the HTML file as a Bash script to dump domain information (requires `ldapsea
   ```
 
 ### Python
+Dump domain into LDIF using python collector:
+- From a local file:
+  ```python
+  python adhunt.html <ldif_results_directory> --dump
+  ```
+- Download and execute in memory:
+  ```python
+  curl https://adhunt.netlify.app | python
+  ```
+  
 Parse LDIF results into JSON for use in the HTML GUI:
 - From a local file:
   ```python
@@ -54,14 +64,10 @@ Parse LDIF results into JSON for use in the HTML GUI:
   curl https://adhunt.netlify.app | python
   ```
 
-Dump domain into LDIF using python collector:
+Convert LDIF results into BloodHound format:
 - From a local file:
   ```python
-  python adhunt.html <ldif_results_directory> --dump
-  ```
-- Download and execute in memory:
-  ```python
-  curl https://adhunt.netlify.app | python
+  python adhunt.html <ldif_results_directory> --bloodhound
   ```
 
 ### Browser
