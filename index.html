@@ -441,6 +441,18 @@ iex(gc -path adhunt.html -raw)
                 'gposFileInput': { all: 'allGpos', displayed: 'displayedGpos' }
             };
 
+            let debounceToken = 'intial_value'
+
+            function debounce(fn, timeout) {
+                debounceToken = Math.random().toString(36).substr(2, 10);
+                let currentToken = debounceToken;
+                setTimeout(() => {
+                    if(currentToken === debounceToken) {
+                        fn()
+                    } 
+                }, timeout)
+            }
+
             function togglePanelVisibility(checkbox, panel) {
                 panel.className = checkbox.checked ? "visible" : "hidden";
             }
@@ -654,7 +666,7 @@ iex(gc -path adhunt.html -raw)
             elements.computersFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputComputers));
             elements.gposFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputGpos));
 
-            elements.filterInput.addEventListener('change', applyFilter);
+            elements.filterInput.addEventListener('input', () => debounce(applyFilter, 600));
             
             addEventListener("hashchange", (event) => {
                 elements.filterInput.value = decodeURI(location.hash.substring(1))
