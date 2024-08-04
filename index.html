@@ -484,10 +484,10 @@ iex(gc -path adhunt.html -raw)
 
                 updateProgress();
 
-                displayAndLoadMoreItems(elements.outputUsers, dataStore.displayedUsers, "user", pagination.userLoadIndex);
-                displayAndLoadMoreItems(elements.outputGroups, dataStore.displayedGroups, "group", pagination.groupLoadIndex);
-                displayAndLoadMoreItems(elements.outputComputers, dataStore.displayedComputers, "computer", pagination.computerLoadIndex);
-                displayAndLoadMoreItems(elements.outputGpos, dataStore.displayedGpos, "gpo", pagination.gpoLoadIndex);
+                loadMoreItems(elements.outputUsers, dataStore.displayedUsers, "user", pagination.userLoadIndex);
+                loadMoreItems(elements.outputGroups, dataStore.displayedGroups, "group", pagination.groupLoadIndex);
+                loadMoreItems(elements.outputComputers, dataStore.displayedComputers, "computer", pagination.computerLoadIndex);
+                loadMoreItems(elements.outputGpos, dataStore.displayedGpos, "gpo", pagination.gpoLoadIndex);
             }
 
             function filterData(data, query) {
