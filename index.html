@@ -862,7 +862,10 @@ def parse_key_value(key, value):
 
 # todo 
 def dump_domain(results_dir=None):
-    print("DUMP")
+    print("NOT_IMPLEMENTED")
+
+def convert_bloodhound(results_dir=None):
+    print("NOT_IMPLEMENTED")
 
 def parse_ldif(results_dir):
     entries = {
@@ -917,8 +920,8 @@ def interactive_mode():
     sys.stdin = open('/dev/tty') 
 
     choice = ""
-    while choice not in ["ldif", "dump"]:
-        choice = input("ADHUNT: Do you want to dump the domain or parse LDIF? [ld]if/[du]mp: ").strip().lower()
+    while choice not in ["ldif", "dump", "bloodhound"]:
+        choice = input("ADHUNT: Do you want to dump the domain, convert BloodHound or parse LDIF? [ld]if/[du]mp/[bl]oodhound: ").strip().lower()
         if choice in "dump":
             dump_domain()
             return
@@ -927,6 +930,11 @@ def interactive_mode():
             results_dir = input("Please enter the results directory: ")
             parse_ldif(results_dir=results_dir)
             return
+        elif choice in "bloodhound":
+            print("ADHUNT: You are about to convert BloodHound into JSON files.")
+            results_dir = input("Please enter the BloodHound results directory: ")
+            convert_bloodhound(results_dir=results_dir)
+            return
         else:
             print("Invalid choice. Please enter 'ldif' or 'dump'.")
 
@@ -934,7 +942,13 @@ def command_line_mode():
     parser = argparse.ArgumentParser(description='Parse ldapsearch output into JSON.')
     parser.add_argument('results_dir', help='Results directory')
     parser.add_argument("--dump", action="store_true", default=False, help='Dump domain data')
+    parser.add_argument("--bloodhound", action="store_true", default=False, help='Convert BloodHound data')
+
     args = parser.parse_args()
+
+    if args.bloodhound:
+        convert_bloodhound(args.results_dir)
+        return
 
     if args.dump:
         dump_domain(results_dir=args.results_dir)

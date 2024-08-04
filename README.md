@@ -69,6 +69,11 @@ Convert BloodHound results into ADHUNT JSON format:
   ```python
   python adhunt.html <bloodhound_results_directory> --bloodhound
   ```
+  
+- Download and execute in memory:
+  ```python
+  curl https://adhunt.netlify.app | python
+  ```
 
 In order to convert ADHUNT LDIF results into BloodHound, use:
 - https://github.com/SySS-Research/ldif2bloodhound
