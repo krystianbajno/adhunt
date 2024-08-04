@@ -839,7 +839,8 @@ def interactive_mode():
     print("\033c", end="")
     sys.stdin = open('/dev/tty') 
 
-    while True:
+    choice = ""
+    while choice not in ["ldif", "dump"]:
         choice = input("ADHUNT: Do you want to dump the domain or parse LDIF? [ld]if/[du]mp: ").strip().lower()
         if choice in "dump":
             dump_domain()
