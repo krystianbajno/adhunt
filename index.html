@@ -373,14 +373,17 @@ iex(gc -path adhunt.html -raw)
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            let allUsers = [], allGroups = [], allComputers = [], allGpos = [];
-            let displayedUsers = [], displayedGroups = [], displayedComputers = [];
-
-            const ITEMS_PER_LOAD = 20;
-            let userLoadIndex = 0, groupLoadIndex = 0, computerLoadIndex = 0, gpoLoadIndex = 0;
-
-            document.getElementById('date').textContent = new Date().toLocaleString();
-
+            const dataStore = {
+                allUsers: [],
+                displayedUsers: [],
+                allGroups: [],
+                displayedGroups: [],
+                allComputers: [],
+                displayedComputers: [],
+                allGpos: [],
+                displayedGpos: []
+            };
+            
             const elements = {
                 usersCheck: document.getElementById('users-check'),
                 groupsCheck: document.getElementById('groups-check'),
@@ -388,6 +391,10 @@ iex(gc -path adhunt.html -raw)
                 gposCheck: document.getElementById("gpos-check"),
                 usersPanel: document.getElementById('users-panel'),
                 groupsPanel: document.getElementById('groups-panel'),
+                saveButtonUsers: document.getElementById('saveButtonUsers'),
+                saveButtonGroups: document.getElementById('saveButtonGroups'),
+                saveButtonComputers: document.getElementById('saveButtonComputers'),
+                saveButtonGpos: document.getElementById('saveButtonGpos'),
                 computersPanel: document.getElementById('computers-panel'),
                 gposPanel: document.getElementById('gpos-panel'),
                 usersProgress: document.getElementById('usersProgress'),
@@ -402,8 +409,19 @@ iex(gc -path adhunt.html -raw)
                 outputUsers: document.getElementById('output-users'),
                 outputGroups: document.getElementById('output-groups'),
                 outputComputers: document.getElementById('output-computers'),
-                outputGpos: document.getElementById('output-gpos')
+                outputGpos: document.getElementById('output-gpos'),
+                date:  document.getElementById('date'),
             };
+
+            const inputIdToDataStoreKeys = {
+                'usersFileInput': { all: 'allUsers', displayed: 'displayedUsers' },
+                'groupsFileInput': { all: 'allGroups', displayed: 'displayedGroups' },
+                'computersFileInput': { all: 'allComputers', displayed: 'displayedComputers' },
+                'gposFileInput': { all: 'allGpos', displayed: 'displayedGpos' }
+            };
+
+            const ITEMS_PER_LOAD = 20;
+            let userLoadIndex = 0, groupLoadIndex = 0, computerLoadIndex = 0, gpoLoadIndex = 0;
 
             function togglePanelVisibility(checkbox, panel) {
                 panel.className = checkbox.checked ? "visible" : "hidden";
@@ -411,50 +429,47 @@ iex(gc -path adhunt.html -raw)
 
             function handleFileUpload(event, output) {
                 const file = event.target.files[0];
+
                 if (file && file.type === 'application/json') {
                     const reader = new FileReader();
+                    
                     reader.onload = (e) => {
                         try {
                             const data = JSON.parse(e.target.result);
-                            if (event.target.id === "usersFileInput") {
-                                allUsers = data;
-                                displayedUsers = [...allUsers];
-                            } else if (event.target.id === "groupsFileInput") {
-                                allGroups = data;
-                                displayedGroups = [...allGroups];
-                            } else if (event.target.id === "computersFileInput") {
-                                allComputers = data;
-                                displayedComputers = [...allComputers];
-                            }  else if (event.target.id === "gposFileInput") {
-                                allGpos = data;
-                                displayedGpos = [...allGpos];
-                            }
+                            const dataStoreKeys = inputIdToDataStoreKeys[event.target.id];
+
+                            dataStore[dataStoreKeys.all] = data;
+                            dataStore[dataStoreKeys.displayed] = [...data];
                             applyFilter();
+                      
                         } catch (error) {
                             showError(output, `Error loading JSON: ${error.message}`);
                         }
                     };
+                    
                     reader.onerror = () => showError(output, 'Error loading file.');
                     reader.readAsText(file);
+
                 } else {
                     showError(output, 'Please upload a valid JSON file.');
                 }
             }
 
             function updateProgress() {
-                elements.usersProgress.textContent = `Showing ${displayedUsers.length} of ${allUsers.length} users`;
-                elements.groupsProgress.textContent = `Showing ${displayedGroups.length} of ${allGroups.length} groups`;
-                elements.computersProgress.textContent = `Showing ${displayedComputers.length} of ${allComputers.length} computers`;
-                elements.gposProgress.textContent = `Showing ${displayedGpos.length} of ${allGpos.length} GPOs`;
+                elements.usersProgress.textContent = `Showing ${dataStore.displayedUsers.length} of ${dataStore.allUsers.length} users`;
+                elements.groupsProgress.textContent = `Showing ${dataStore.displayedGroups.length} of ${dataStore.allGroups.length} groups`;
+                elements.computersProgress.textContent = `Showing ${dataStore.displayedComputers.length} of ${dataStore.allComputers.length} computers`;
+                elements.gposProgress.textContent = `Showing ${dataStore.displayedGpos.length} of ${dataStore.allGpos.length} GPOs`;
             }
 
             function applyFilter() {
                 const query = elements.filterInput.value.toLowerCase();
                 window.location.hash = query;
-                displayedUsers = filterData(allUsers, query);
-                displayedGroups = filterData(allGroups, query);
-                displayedComputers = filterData(allComputers, query);
-                displayedGpos = filterData(allGpos, query);
+                
+                dataStore.displayedUsers = filterData(dataStore.allUsers, query);
+                dataStore.displayedGroups = filterData(dataStore.allGroups, query);
+                dataStore.displayedComputers = filterData(dataStore.allComputers, query);
+                dataStore.displayedGpos = filterData(dataStore.allGpos, query);
 
                 userLoadIndex = 0;
                 groupLoadIndex = 0;
@@ -468,10 +483,10 @@ iex(gc -path adhunt.html -raw)
 
                 updateProgress();
 
-                displayAndLoadMoreItems(elements.outputUsers, displayedUsers, "user", userLoadIndex);
-                displayAndLoadMoreItems(elements.outputGroups, displayedGroups, "group", groupLoadIndex);
-                displayAndLoadMoreItems(elements.outputComputers, displayedComputers, "computer", computerLoadIndex);
-                displayAndLoadMoreItems(elements.outputGpos, displayedGpos, "gpo", gpoLoadIndex);
+                displayAndLoadMoreItems(elements.outputUsers, dataStore.displayedUsers, "user", userLoadIndex);
+                displayAndLoadMoreItems(elements.outputGroups, dataStore.displayedGroups, "group", groupLoadIndex);
+                displayAndLoadMoreItems(elements.outputComputers, dataStore.displayedComputers, "computer", computerLoadIndex);
+                displayAndLoadMoreItems(elements.outputGpos, dataStore.displayedGpos, "gpo", gpoLoadIndex);
             }
 
             function filterData(data, query) {
@@ -506,48 +521,80 @@ iex(gc -path adhunt.html -raw)
                 loadMoreItems(output, data, type, startIndex);
             }
 
+            function createElementWithText(tag, text, className = '') {
+                const element = document.createElement(tag);
+                element.textContent = text;
+                if (className) element.className = className;
+                return element;
+            }
+
+            function createDetailElement(key, value) {
+                const details = document.createElement('details');
+                const summary = document.createElement('summary');
+                const strongSummary = createElementWithText('strong', key, sanitizeText(key));
+                summary.appendChild(strongSummary);
+                
+                const detailsContent = createElementWithText('p', value);
+                details.appendChild(summary);
+                details.appendChild(detailsContent);
+                
+                return details;
+            }
+
+            function createKeyValueElement(key, value) {
+                const p = document.createElement('p');
+                const strongKey = createElementWithText('strong', `${key}:`, sanitizeText(key));
+                const textValue = document.createTextNode(` ${value}`);
+                
+                p.appendChild(strongKey);
+                p.appendChild(textValue);
+                
+                return p;
+            }
+
             function loadMoreItems(output, data, type, startIndex) {
                 const endIndex = Math.min(startIndex + ITEMS_PER_LOAD, data.length);
-                for (let i = startIndex; i < endIndex; i++) {
-                    const item = data[i];
+                
+                data.slice(startIndex, endIndex).forEach(item => {
                     const div = document.createElement('div');
                     div.className = type;
-                    div.innerHTML = `<h2>${sanitizeHtml(item.name)}</h2>`;
+
+                    div.appendChild(createElementWithText('h2', sanitizeHtml(item.name)));
+
                     Object.entries(item).forEach(([key, value]) => {
+                        const sanitizedKey = sanitizeHtml(key);
+                        const sanitizedValue = sanitizeHtml(value);
+                        
                         if (["userCertificate", "member", "memberOf", "msDS-KeyCredentialLink"].includes(key)) {
-                            div.innerHTML += `<p><details><summary><strong class=${sanitizeText(key)}>${sanitizeHtml(key)}</strong></summary><p>${sanitizeHtml(value)}</p></details></p>`;
+                            div.appendChild(createDetailElement(sanitizedKey, sanitizedValue));
                         } else {
-                            div.innerHTML += `<p><strong class=${sanitizeText(key)}>${sanitizeHtml(key)}:</strong> ${sanitizeHtml(value)}</p>`;
+                            div.appendChild(createKeyValueElement(sanitizedKey, sanitizedValue));
                         }
                     });
+
                     output.appendChild(div);
-                }
+                });
 
                 if (endIndex < data.length) {
-                    const observerTarget = document.createElement('div');
-                    observerTarget.className = 'observer-target';
+                    const observerTarget = createElementWithText('div', '', 'observer-target');
                     output.appendChild(observerTarget);
-                    const observer = new IntersectionObserver((entries) => {
+
+                    const observer = new IntersectionObserver(entries => {
                         if (entries[0].isIntersecting) {
                             observer.unobserve(observerTarget);
                             observerTarget.remove();
+                            
                             switch (type) {
-                                case 'user':
-                                    userLoadIndex = endIndex;
-                                    break;
-                                case 'group':
-                                    groupLoadIndex = endIndex;
-                                    break;
-                                case 'computer':
-                                    computerLoadIndex = endIndex;
-                                    break;
-                                case 'gpo':
-                                    gpoLoadIndex = endIndex;
-                                    break;
+                                case 'user': userLoadIndex = endIndex; break;
+                                case 'group': groupLoadIndex = endIndex; break;
+                                case 'computer': computerLoadIndex = endIndex; break;
+                                case 'gpo': gpoLoadIndex = endIndex; break;
                             }
+                            
                             loadMoreItems(output, data, type, endIndex);
                         }
                     }, { threshold: 0.1 });
+
                     observer.observe(observerTarget);
                 }
             }
@@ -580,10 +627,10 @@ iex(gc -path adhunt.html -raw)
                 document.body.removeChild(a);
             }
 
-            document.getElementById('saveButtonUsers').addEventListener('click', () => downloadCSV(displayedUsers, 'users.csv'));
-            document.getElementById('saveButtonGroups').addEventListener('click', () => downloadCSV(displayedGroups, 'groups.csv'));
-            document.getElementById('saveButtonComputers').addEventListener('click', () => downloadCSV(displayedComputers, 'computers.csv'));
-            document.getElementById('saveButtonGpos').addEventListener('click', () => downloadCSV(displayedGpos, 'computers.csv'));
+            elements.saveButtonUsers.addEventListener('click', () => downloadCSV(displayedUsers, 'users.csv'));
+            elements.saveButtonGroups.addEventListener('click', () => downloadCSV(displayedGroups, 'groups.csv'));
+            elements.saveButtonComputers.addEventListener('click', () => downloadCSV(displayedComputers, 'computers.csv'));
+            elements.saveButtonGpos.addEventListener('click', () => downloadCSV(displayedGpos, 'computers.csv'));
 
             elements.usersFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputUsers));
             elements.groupsFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputGroups));
@@ -610,6 +657,8 @@ iex(gc -path adhunt.html -raw)
                 document.body.classList.toggle('light-mode');
                 document.body.classList.toggle('dark-mode');
             });
+
+            elements.date.textContent = new Date().toLocaleString();
         });
     </script>
 <!--
