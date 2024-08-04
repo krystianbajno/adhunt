@@ -513,15 +513,6 @@ iex(gc -path adhunt.html -raw)
                     .replace(/\\/g, "&#x5C;");
             }
 
-            function displayAndLoadMoreItems(output, data, type, startIndex) {
-                if (data.length === 0) {
-                    output.textContent = `No ${type}s found. Load a file or refine your filters.`;
-                    return;
-                }
-
-                loadMoreItems(output, data, type, startIndex);
-            }
-
             function createElementWithText(tag, text, className = '') {
                 const element = document.createElement(tag);
                 element.textContent = text;
@@ -553,7 +544,12 @@ iex(gc -path adhunt.html -raw)
                 return p;
             }
 
-            function loadMoreItems(output, data, type, startIndex) {
+            function loadMoreItems(output, data, type, startIndex) {                
+                if (data.length === 0) {
+                    output.textContent = `No ${type}s found. Load a file or refine your filters.`;
+                    return;
+                }
+
                 const endIndex = Math.min(startIndex + pagination.ITEMS_PER_LOAD, data.length);
                 
                 data.slice(startIndex, endIndex).forEach(item => {
@@ -574,7 +570,7 @@ iex(gc -path adhunt.html -raw)
                     });
 
                     output.appendChild(div);
-                });
+                })
 
                 if (endIndex < data.length) {
                     const observerTarget = createElementWithText('div', '', 'observer-target');
