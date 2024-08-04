@@ -64,11 +64,15 @@ Parse LDIF results into JSON for use in the HTML GUI:
   curl https://adhunt.netlify.app | python
   ```
 
-Convert LDIF results into BloodHound format:
+Convert BloodHound results into ADHUNT JSON format:
 - From a local file:
   ```python
-  python adhunt.html <ldif_results_directory> --bloodhound
+  python adhunt.html <bloodhound_results_directory> --bloodhound
   ```
+
+In order to convert ADHUNT LDIF results into BloodHound, use:
+- https://github.com/SySS-Research/ldif2bloodhound
+- https://github.com/gquere/bloodhound_linux
 
 ### Browser
 Run the HTML file in a browser to display and filter results:
