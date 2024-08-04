@@ -14,7 +14,6 @@
 ### Extractors:
 - **Python**: HTTP Webhook upload client (server implemented in https://github.com/krystianbajno/UPLINK) with AES-GCM 256 bit encryption and zip compression during domain dump without touching disk. (todo)
 - **PowerShell**: HTTP Webhook upload client with AES-GCM 256 bit encryption and zip compression during domain dump without touching disk. (todo)
-- **JavaScript**: HTTP Webhook upload client with AES-GCM 256 bit encryption and zip compression from browser. (todo)
 
 ### GUI:
 
