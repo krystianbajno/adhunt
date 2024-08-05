@@ -666,7 +666,7 @@ iex(gc -path adhunt.html -raw)
             elements.computersFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputComputers));
             elements.gposFileInput.addEventListener('change', (e) => handleFileUpload(e, elements.outputGpos));
 
-            elements.filterInput.addEventListener('input', () => debounce(applyFilter, 600));
+            elements.filterInput.addEventListener('change', (e) => applyFilter());
             
             addEventListener("hashchange", (event) => {
                 elements.filterInput.value = decodeURI(location.hash.substring(1))
@@ -948,7 +948,7 @@ def interactive_mode():
             convert_bloodhound(results_dir=results_dir)
             return
         else:
-            print("Invalid choice. Please enter 'ldif' or 'dump'.")
+            print("Invalid choice. Please enter 'ldif' or 'dump' or 'bloodhound'.")
 
 def command_line_mode():
     parser = argparse.ArgumentParser(description='Parse ldapsearch output into JSON.')
