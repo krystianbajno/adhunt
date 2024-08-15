@@ -1,6 +1,6 @@
 # ADHUNT
 
-**ADHUNT** is a versatile polyglot file (Bash, PowerShell, Python, HTML) for gathering domain information. It operates seamlessly across different environments without the need for installation. You can either save it directly from the website or execute it in-memory.
+**ADHUNT** is a versatile polyglot file (Bash, PowerShell, Python, HTML) for viewing domain information. It operates seamlessly across different environments without the need for installation. You can either save it directly from the website or execute it in-memory.
 
 ### Collectors:
 - **Python**: `ldap3` (todo)
@@ -10,10 +10,6 @@
 ### Converters:
 - **Python**: Converts `ldapsearch` LDIF results into ADHUNT JSON.
 - **Python**: Converts BloodHound JSON into ADHUNT JSON. (todo)
-
-### Exfiltrators:
-- **Python**: An HTTP Webhook upload client (server implementation available at https://github.com/krystianbajno/UPLINK) that uses AES-GCM 256-bit encryption and zip compression during domain dumping without writing to disk. (todo)
-- **PowerShell**: An HTTP Webhook upload client that uses AES-GCM 256-bit encryption and zip compression during domain dumping without writing to disk.(todo)
 
 ### GUI:
 
@@ -134,7 +130,6 @@ To find domain admin:
 ADHUNT requires no installation and can run completely in memory to dump domain information, then parse results locally in your browser at https://adhunt.netlify.app.
 
 ## Todo
-
 - Python domain information collector
 - BloodHound data converter
 - Webhook encrypted extraction
