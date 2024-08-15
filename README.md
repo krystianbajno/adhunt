@@ -132,4 +132,3 @@ ADHUNT requires no installation and can run completely in memory to dump domain 
 ## Todo
 - Python domain information collector
 - BloodHound data converter
-- Webhook encrypted extraction
