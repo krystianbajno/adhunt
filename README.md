@@ -1,6 +1,6 @@
 # ADHUNT
 
-**ADHUNT** is a versatile polyglot file (Bash, PowerShell, Python, HTML) for viewing domain information. It operates seamlessly across different environments without the need for installation. You can either save it directly from the website or execute it in-memory.
+**ADHUNT** is a versatile polyglot file (Bash, PowerShell, Python, HTML) for overviewing domain information. It operates seamlessly across different environments without the need for installation. You can either save it directly from the website or execute it in-memory.
 
 ### Collectors:
 - **Python**: `ldap3` (todo)
