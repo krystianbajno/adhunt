@@ -1,4 +1,6 @@
 # ADHUNT
+[![CodeFactor](https://www.codefactor.io/repository/github/krystianbajno/adhunt/badge)](https://www.codefactor.io/repository/github/krystianbajno/adhunt)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/557adc031264478bb9ee8f2227a3c3a6)](https://app.codacy.com/gh/krystianbajno/adhunt/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 **ADHUNT** is a versatile polyglot file (Bash, PowerShell, Python, HTML) for overviewing domain information. It operates seamlessly across different environments without the need for installation. You can either save it directly from the website or execute it in-memory.
 
